@@ -1,29 +1,44 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>sb3fix - fix corrupted Scratch projects</title>
     <meta charset="utf8">
+    <title>sb3fix - fix corrupted Scratch projects</title>
+    <meta name="description" content="sb3fix tries to fix corrupted Scratch 3 projects.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
       :root {
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
 
+      body {
+        max-width: 720px;
+        margin: auto;
+        padding: 0 8px;
+      }
+
       .error {
         font-family: monospace;
         white-space: pre-wrap;
+      }
+
+      .fixed-error-list {
+        overflow-wrap: break-word;
       }
     </style>
   </head>
 
   <body>
     <h1>sb3fix (early prototype)</h1>
-    <p>Insert sb3 files into the input below, and sb3fix will fix common sources of corruption for you.</p>
+    <p>Insert corrupted project files made with Scratch 3 or mods such as TurboWarp, and sb3fix will try to fix it.</p>
+    <noscript><p>sb3fix requires JavaScript.</p></noscript>
     <p>
       <input class="file" type="file" accept=".sb3" multiple autocomplete="off">
     </p>
 
     <div class="output"></div>
+
+    <h2>My file is still broken!</h2>
+    <p>Please get your project to us so we can try to fix it for you. If you have a GitHub account, the easiest way is to <a href="https://github.com/TurboWarp/sb3fix/issues/new">open a GitHub issue</a> and attach your sb3 file.</p>
 
     <h2>Code</h2>
     <p>Open source on GitHub: <a href="https://github.com/TurboWarp/sb3fix">https://github.com/TurboWarp/sb3fix</a></p>
@@ -32,17 +47,36 @@
     <p>Files are processed locally on your computer and never sent to any server.</p>
 
     <h2>Which errors does this fix?</h2>
-    <ul>
+    <ul class="fixed-error-list">
       <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].costumes[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
       <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].sounds[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
     </ul>
 
+    <script>
+      /** @type {HTMLFileElement} */
+      const input = document.querySelector('.file');
+      /** @type {HTMLElement} */
+      const output = document.querySelector('.output');
+
+      // Start handling drag events as soon as possible
+      document.addEventListener('dragover', (e) => {
+        if (e.dataTransfer.types.includes('Files')) {
+          e.preventDefault();
+          e.dataTransfer.dropEffect = 'copy';
+        }
+      });
+      document.addEventListener('drop', (e) => {
+        if (e.dataTransfer.types.includes('Files')) {
+          e.preventDefault();
+          input.files = e.dataTransfer.files;
+          input.dispatchEvent(new Event('change'));
+        }
+      });
+    </script>
+
     <script src="dependencies/jszip.min.js"></script>
     <script src="sb3fix.js"></script>
     <script>
-      const input = document.querySelector('.file');
-      const output = document.querySelector('.output');
-
       const stringifyError = (error) => {
         if (error && error.message && error.stack) {
           return `${error.message}\n${error.stack}`;
@@ -50,52 +84,61 @@
         return `${error}`;
       };
 
-      input.addEventListener('change', async (e) => {
+      const processFile = async (file) => {
+        const container = document.createElement('div');
+        output.appendChild(container);
+
+        container.appendChild(Object.assign(document.createElement('h3'), {
+          textContent: `Processing ${file.name}`
+        }));
+
+        try {
+          const fixed = await sb3fix(file);
+
+          if (fixed.log.length > 0) {
+            const listOfFixes = document.createElement('ul');
+            for (const log of fixed.log) {
+              listOfFixes.appendChild(Object.assign(document.createElement('li'), {
+                textContent: log
+              }));
+            }
+            container.appendChild(listOfFixes);
+          } else {
+            container.appendChild(Object.assign(document.createElement('p'), {
+              textContent: 'no fixes were found'
+            }));
+          }
+
+          const blob = new Blob([fixed.newZip], {
+            type: 'application/x.scratch.sb3'
+          });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `fixed ${file.name}`;
+          link.textContent = `Download fixed ${file.name}`;
+          container.appendChild(link);
+        } catch (err) {
+          container.appendChild(Object.assign(document.createElement('p'), {
+            className: 'error',
+            textContent: `ERROR:\n${stringifyError(err)}`
+          }));
+        }
+      };
+
+      const process = async () => {
         while (output.firstChild) {
           output.removeChild(output.firstChild);
         }
-
-        for (const file of e.target.files) {
-          const container = document.createElement('div');
-          output.appendChild(container);
-
-          container.appendChild(Object.assign(document.createElement('h3'), {
-            textContent: `Processing ${file.name}`
-          }));
-
-          try {
-            const fixed = await sb3fix(file);
-
-            if (fixed.log.length > 0) {
-              const listOfFixes = document.createElement('ul');
-              for (const log of fixed.log) {
-                listOfFixes.appendChild(Object.assign(document.createElement('li'), {
-                  textContent: log
-                }));
-              }
-              container.appendChild(listOfFixes);
-            } else {
-              container.appendChild(Object.assign(document.createElement('p'), {
-                textContent: 'no fixes were found'
-              }));
-            }
-
-            const blob = new Blob([fixed.newZip], {
-              type: 'application/x.scratch.sb3'
-            });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = `fixed ${file.name}`;
-            link.textContent = `Download fixed ${file.name}`;
-            container.appendChild(link);
-          } catch (err) {
-            container.appendChild(Object.assign(document.createElement('p'), {
-              className: 'error',
-              textContent: `ERROR:\n${stringifyError(err)}`
-            }));
-          }
+        for (const file of input.files) {
+          await processFile(file);
         }
-      });
+      };
+
+      input.addEventListener('change', process);
+      // Files might've been selected before JS finished loading
+      if (input.files.length > 0) {
+        process();
+      }
     </script>
   </body>
 </html>
