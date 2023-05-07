@@ -7,6 +7,31 @@ var sb3fix = (function() {
    */
   const isObject = (obj) => !!obj && typeof obj === 'object';
 
+  const BUILTIN_EXTENSIONS = [
+    'control',
+    'data',
+    'event',
+    'looks',
+    'motion',
+    'operators',
+    'procedures',
+    'argument', // "argument_reporter_boolean" is technically not an extension but we should list here anyways
+    'sensing',
+    'sound',
+    'pen',
+    'wedo2',
+    'music',
+    'microbit',
+    'text2speech',
+    'translate',
+    'videoSensing',
+    'ev3',
+    'makeymakey',
+    'boost',
+    'gdxfor'
+    // intentionally not listing TurboWarp's 'tw' extension here.
+  ];
+
   /**
    * @param {ArrayBuffer|Uint8Array|Blob} data
    * @returns {Promise<{log: string[], newZip: ArrayBuffer}>} fixed compressed sb3
@@ -19,6 +44,25 @@ var sb3fix = (function() {
     const log = (message) => {
       console.log(message);
       logMessages.push(message);
+    };
+
+    /**
+     * @returns {Set<string>}
+     */
+    const getKnownExtensions = (project) => {
+      const extensions = project.extensions;
+      if (!Array.isArray(extensions)) {
+        throw new Error('extensions is not an array');
+      }
+      for (let i = 0; i < extensions.length; i++) {
+        if (typeof extensions[i] !== 'string') {
+          throw new Error(`extension ${i} is not a string`);
+        }
+      }
+      return new Set([
+        ...BUILTIN_EXTENSIONS,
+        ...extensions
+      ]);
     };
 
     /**
@@ -46,6 +90,24 @@ var sb3fix = (function() {
         }
         fixTargetInPlace(target);
       }
+
+      const knownExtensions = getKnownExtensions(project);
+      const monitors = project.monitors;
+      if (!Array.isArray(monitors)) {
+        throw new Error('monitors is not an array');
+      }
+      project.monitors = project.monitors.filter((monitor, i) => {
+        const opcode = monitor.opcode;
+        if (typeof opcode !== 'string') {
+          throw new Error(`monitor ${i} opcode is not a string`);
+        }
+        const extension = opcode.split('_')[0];
+        if (!knownExtensions.has(extension)) {
+          log(`removing monitor ${i} from unknown extension ${extension}`);
+          return false;
+        }
+        return true;
+      });
     };
 
     /**
