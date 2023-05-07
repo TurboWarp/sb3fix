@@ -15,21 +15,32 @@
         margin: auto;
         padding: 0 8px;
       }
+      summary {
+        cursor: pointer;
+      }
+
+      .fixed-error-list {
+        overflow-wrap: break-word;
+      }
 
       .error {
         font-family: monospace;
         white-space: pre-wrap;
       }
-
-      .fixed-error-list {
-        overflow-wrap: break-word;
+      .log-container {
+        margin: 12px 0;
+      }
+      .log-messages {
+        box-sizing: border-box;
+        width: 100%;
+        height: 200px;
       }
     </style>
   </head>
 
   <body>
     <h1>sb3fix (early prototype)</h1>
-    <p>Insert corrupted project files made with Scratch 3 or mods such as TurboWarp, and sb3fix will try to fix it.</p>
+    <p>Insert corrupted project files made with Scratch 3 or TurboWarp, and sb3fix will try to fix it.</p>
     <noscript><p>sb3fix requires JavaScript.</p></noscript>
     <p>
       <input class="file" type="file" accept=".sb3" multiple autocomplete="off">
@@ -47,10 +58,14 @@
     <p>Files are processed locally on your computer and never sent to any server.</p>
 
     <h2>Which errors does this fix?</h2>
+    <p>Some example error messages from TurboWarp that sb3fix addresses:</p>
     <ul class="fixed-error-list">
+      <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].variables['32!k|mRA^e^r;{*i9Z[p-getParam,number1,r-'][0]","schemaPath":"#/items/0/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
       <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].costumes[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
       <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].sounds[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+      <li><code>{"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/0/type","params":{"type":"string"},"message":"should be string"},{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/1/type","params":{"type":"null"},"message":"should be null"}, ...}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
     </ul>
+    <p>The best way to see if you're in luck is to just try it.</p>
 
     <script>
       /** @type {HTMLFileElement} */
@@ -89,27 +104,20 @@
         output.appendChild(container);
 
         container.appendChild(Object.assign(document.createElement('h3'), {
-          textContent: `Processing ${file.name}`
+          textContent: file.name
         }));
 
-        try {
-          const fixed = await sb3fix(file);
+        const processingMessage = Object.assign(document.createElement('p'), {
+          textContent: 'Processing...'
+        });
+        container.appendChild(processingMessage);
 
-          if (fixed.log.length > 0) {
-            const listOfFixes = document.createElement('ul');
-            for (const log of fixed.log) {
-              listOfFixes.appendChild(Object.assign(document.createElement('li'), {
-                textContent: log
-              }));
-            }
-            container.appendChild(listOfFixes);
-          } else {
-            container.appendChild(Object.assign(document.createElement('p'), {
-              textContent: 'no fixes were found'
-            }));
-          }
+        const fixed = await sb3fix(file);
 
-          const blob = new Blob([fixed.newZip], {
+        container.removeChild(processingMessage);
+
+        if (fixed.success) {
+          const blob = new Blob([fixed.fixedZip], {
             type: 'application/x.scratch.sb3'
           });
           const link = document.createElement('a');
@@ -117,12 +125,30 @@
           link.download = `fixed ${file.name}`;
           link.textContent = `Download fixed ${file.name}`;
           container.appendChild(link);
-        } catch (err) {
-          container.appendChild(Object.assign(document.createElement('p'), {
+        } else {
+          const error = Object.assign(document.createElement('p'), {
             className: 'error',
-            textContent: `ERROR:\n${stringifyError(err)}`
-          }));
+            textContent: `ERROR: ${stringifyError(fixed.error)}`
+          });
+          container.appendChild(error);
         }
+
+        const logContainer = Object.assign(document.createElement('details'), {
+          className: 'log-container'
+        });
+        const logSummary = Object.assign(document.createElement('summary'), {
+          className: 'log-summary',
+          textContent: 'View log'
+        });
+        const logMessages = Object.assign(document.createElement('textarea'), {
+          className: 'log-messages',
+          readOnly: true,
+          textContent: fixed.log.join('\n'),
+          placeholder: '(empty)'
+        });
+        logContainer.appendChild(logSummary);
+        logContainer.appendChild(logMessages);
+        container.appendChild(logContainer);
       };
 
       const process = async () => {
