@@ -5,9 +5,25 @@
     <title>sb3fix - fix corrupted Scratch projects</title>
     <meta name="description" content="sb3fix tries to fix corrupted Scratch 3 projects.">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="color-scheme" content="light dark">
     <style>
       :root {
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          background-color: #111;
+          color: #eee;
+        }
+        a {
+          color: #4af;
+        }
+        a:visited {
+          color: rgb(196, 137, 255);
+        }
+        a:active {
+          color: red;
+        }
       }
 
       body {
@@ -21,6 +37,21 @@
 
       .fixed-error-list {
         overflow-wrap: break-word;
+      }
+
+      .drop-indicator {
+        display: none;
+        pointer-events: none;
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-sizing: border-box;
+        border: 10px dashed #7f7fff;
+      }
+      .dropping .drop-indicator {
+        display: block;
       }
 
       .error {
@@ -39,8 +70,14 @@
   </head>
 
   <body>
-    <h1>sb3fix (early prototype)</h1>
-    <p>Insert corrupted project files made with Scratch 3 or TurboWarp, and sb3fix will try to fix it.</p>
+    <div class="drop-indicator"></div>
+
+    <h1>sb3fix - fix corrupted Scratch projects</h1>
+    <p>
+      sb3fix is able to resolve some common problems that can corrupt Scratch projects and make them no longer load.
+      sb3fix is NOT perfect and we can't guarantee it will get your project back, but it's worth a shot.
+      Just input the sb3 file into the input below.
+    </p>
     <noscript><p>sb3fix requires JavaScript.</p></noscript>
     <p>
       <input class="file" type="file" accept=".sb3" multiple autocomplete="off">
@@ -76,15 +113,21 @@
       const output = document.querySelector('.output');
 
       // Start handling drag events as soon as possible
+      const dropIndicator = document.querySelector('.drop-indicator');
       document.addEventListener('dragover', (e) => {
         if (e.dataTransfer.types.includes('Files')) {
           e.preventDefault();
           e.dataTransfer.dropEffect = 'copy';
+          document.body.classList.add('dropping');
         }
+      });
+      document.addEventListener('dragleave', (e) => {
+        document.body.classList.remove('dropping');
       });
       document.addEventListener('drop', (e) => {
         if (e.dataTransfer.types.includes('Files')) {
           e.preventDefault();
+          document.body.classList.remove('dropping');
           input.files = e.dataTransfer.files;
           input.dispatchEvent(new Event('change'));
         }
