@@ -107,7 +107,9 @@ var sb3fix = (function() {
       if (!Array.isArray(targets)) {
         throw new Error('targets is not an array');
       }
-
+      if (targets.length < 1) {
+        throw new Error('targets is empty');
+      }
       for (let i = 0; i < targets.length; i++) {
         log(`checking target ${i}`);
         const target = targets[i];
@@ -115,6 +117,25 @@ var sb3fix = (function() {
           throw new Error('target is not an object');
         }
         fixTargetInPlace(target);
+      }
+
+      const allStages = targets.filter((target) => target.isStage);
+      if (allStages.length !== 1) {
+        throw new Error(`wrong number of stages: ${allStages.length}`);
+      }
+      const stageIndex = targets.findIndex((target) => target.isStage);
+      // stageIndex guaranteed to not be -1 by earlier check
+      const stage = targets[stageIndex];
+      // stage must be the first target
+      if (stageIndex !== 0) {
+        log('stage was not at start');
+        targets.splice(stageIndex, 1);
+        targets.unshift(stage);
+      }
+      // stage's name must match exactly
+      if (stage.name !== 'Stage') {
+        stage.name = 'Stage';
+        log('stage had wrong name');
       }
 
       const knownExtensions = getKnownExtensions(project);
@@ -129,7 +150,7 @@ var sb3fix = (function() {
         }
         const extension = opcode.split('_')[0];
         if (!knownExtensions.has(extension)) {
-          log(`removing monitor ${i} from unknown extension ${extension}`);
+          log(`removed monitor ${i} from unknown extension ${extension}`);
           return false;
         }
         return true;
