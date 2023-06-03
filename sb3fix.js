@@ -176,6 +176,19 @@ var sb3fix = (function() {
           costume.name = String(costume.name);
         }
       }
+      if (costumes.length === 0) {
+        log(`costumes was empty, adding empty costume`);
+        costumes.push({
+          // Empty SVG costume
+          name: 'costume1',
+          bitmapResolution: 1,
+          dataFormat: 'svg',
+          assetId: 'cd21514d0531fdffb22204e0ec5ed84a',
+          md5ext: 'cd21514d0531fdffb22204e0ec5ed84a.svg',
+          rotationCenterX: 0,
+          rotationCenterY: 0
+        });
+      }
 
       const sounds = target.sounds;
       if (!Array.isArray(sounds)) {
