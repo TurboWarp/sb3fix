@@ -165,15 +165,20 @@ var sb3fix = (function() {
       if (!Array.isArray(costumes)) {
         throw new Error('costumes is not an array');
       }
-      for (let i = 0; i < costumes.length; i++) {
+      for (let i = costumes.length - 1; i >= 0; i--) {
         const costume = costumes[i];
         if (!isObject(costume)) {
-          throw new Error(`costume ${j} is not an object`);
+          throw new Error(`costume ${i} is not an object`);
         }
 
         if (typeof costume.name !== 'string') {
           log(`costume ${i} name was not a string`);
           costume.name = String(costume.name);
+        }
+
+        if (!('assetId' in costume)) {
+          log(`costume ${i} was missing assetId, deleted`);
+          costumes.splice(i, 1);
         }
       }
       if (costumes.length === 0) {
@@ -194,7 +199,7 @@ var sb3fix = (function() {
       if (!Array.isArray(sounds)) {
         throw new Error('sounds is not an array');
       }
-      for (let i = 0; i < sounds.length; i++) {
+      for (let i = sounds.length - 1; i >= 0; i--) {
         const sound = sounds[i];
         if (!isObject(sound)) {
           throw new Error(`sound ${i} is not an object`);
@@ -203,6 +208,11 @@ var sb3fix = (function() {
         if (typeof sound.name !== 'string') {
           log(`sound ${i} name was not a string`);
           sound.name = String(sound.name);
+        }
+
+        if (!('assetId' in sound)) {
+          log(`sound ${i} was missing assetId, deleted`);
+          sounds.splice(i, 1);
         }
       }
 
