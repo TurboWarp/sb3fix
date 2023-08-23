@@ -237,7 +237,7 @@ var sb3fix = (function() {
         throw new Error('lists is not an object');
       }
       for (const [listId, list] of Object.entries(lists)) {
-        fixVariableInPlace(listId, list);
+        fixListInPlace(listId, list);
       }
     };
 
@@ -311,12 +311,49 @@ var sb3fix = (function() {
      */
     const fixVariableInPlace = (id, variable) => {
       if (!Array.isArray(variable)) {
-        throw new Error(`variable or list ${id} is not an array`);
+        throw new Error(`variable object ${id} is not an array`);
       }
+
       const name = variable[0];
       if (typeof name !== 'string') {
         log(`variable or list ${id} name was not a string`);
         variable[0] = String(variable[0]);
+      }
+
+      const value = variable[1];
+      if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
+        log(`variable ${id} value was not a Scratch-compatible value`);
+        variable[1] = String(variable[1]);
+      }
+    };
+
+    /**
+     * @param {string} id
+     * @param {unknown} list
+     */
+    const fixListInPlace = (id, list) => {
+      if (!Array.isArray(list)) {
+        throw new Error(`list object ${id} is not an array`);
+      }
+
+      const name = list[0];
+      if (typeof name !== 'string') {
+        log(`list ${id} name was not a string`);
+        list[0] = String(list[0]);
+      }
+
+      if (!Array.isArray(list[1])) {
+        log(`list ${id} value was not an array`);
+        list[1] = [];
+      }
+
+      const listValue = list[1];
+      for (let i = 0; i < listValue.length; i++) {
+        const value = listValue[i];
+        if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
+          log(`list ${id} index ${i} was not a Scratch-compatible value`);
+          listValue[i] = String(value);
+        }
       }
     };
 
