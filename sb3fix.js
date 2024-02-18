@@ -239,6 +239,18 @@ var sb3fix = (function() {
       for (const [listId, list] of Object.entries(lists)) {
         fixListInPlace(listId, list);
       }
+
+      if (target.isStage) {
+        if (target.layerOrder !== 0) {
+          log('stage had invalid layerOrder');
+          target.layerOrder = 0;
+        }
+      } else {
+        if (target.layerOrder < 1) {
+          log('sprite had invalid layerOrder');
+          target.layerOrder = 1;
+        }
+      }
     };
 
     /**
