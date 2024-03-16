@@ -2,6 +2,76 @@
 
 https://turbowarp.github.io/sb3fix/
 
-Fix corrupted Scratch projects. Early prototype.
+Fix corrupted Scratch projects.
 
-Currently, sb3fix is developed as a simple static website.
+## API
+
+Install with:
+
+```bash
+npm install @turbowarp/sb3fix
+```
+
+Then use from Node.js:
+
+```js
+const sb3fix = require('@turbowarp/sb3fix');
+const fs = require('fs');
+
+const run = async () => {
+  const projectData = fs.readFileSync('your-broken-project.sb3');
+  const result = await sb3fix(projectData); // projectData can be ArrayBuffer, Uint8Array-like, Blob, or File
+
+  const fixedZip = result.fixedZip; // fixedZip is ArrayBuffer
+  const log = result.log; // log is Array of strings
+
+  // sb3fix is deterministic: the same input project always produces the same zip and log
+  // If the zip cannot be fixed, the Promise returned by sb3fix() will reject. You should handle this.
+};
+
+run();
+```
+
+## Development
+
+Install things:
+
+```bash
+git clone https://github.com/TurboWarp/sb3fix.git
+cd sb3fix
+npm ci
+```
+
+Source code is in the src folder. During development do:
+
+```bash
+npm run watch
+```
+
+Then open dist/index.html in your favorite browser.
+
+For the final build:
+
+```bash
+npm run build
+```
+
+All changes should have a corresponding test. Add test sb3 files in tests/samples, then run:
+
+```bash
+npm run update
+```
+
+Then check that the changes in tests/expected-output match what you expect. No unexpected changes! You can check if all the tests still pass with:
+
+```bash
+npm run test
+```
+
+## License
+
+Copyright (C) 2023-2024 Thomas Weber
+
+This Source Code Form is subject to the terms of the Mozilla Public
+License, v. 2.0. If a copy of the MPL was not distributed with this
+file, You can obtain one at https://mozilla.org/MPL/2.0/.

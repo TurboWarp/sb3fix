@@ -1,0 +1,4 @@
+checking target 0
+checking target 1
+checking target 2
+variable or list native name was not a string

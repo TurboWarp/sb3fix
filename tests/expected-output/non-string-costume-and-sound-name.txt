@@ -1,0 +1,5 @@
+checking target 0
+costume 0 name was not a string
+checking target 1
+costume 0 name was not a string
+sound 0 name was not a string

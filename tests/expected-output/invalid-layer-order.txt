@@ -1,0 +1,4 @@
+checking target 0
+stage had invalid layerOrder
+checking target 1
+sprite had invalid layerOrder

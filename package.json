@@ -1,0 +1,31 @@
+{
+  "name": "@turbowarp/sb3fix",
+  "version": "0.0.1",
+  "description": "Fix corrupted Scratch projects",
+  "main": "src/sb3fix.js",
+  "scripts": {
+    "build": "webpack -c webpack.config.js",
+    "watch": "webpack --watch -c webpack.config.js",
+    "update": "node tests/snapshots --update",
+    "test": "node tests/snapshots --validate"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/TurboWarp/sb3fix.git"
+  },
+  "author": "GarboMuffin",
+  "license": "MPL-2.0",
+  "bugs": {
+    "url": "https://github.com/TurboWarp/sb3fix/issues"
+  },
+  "homepage": "https://github.com/TurboWarp/sb3fix#readme",
+  "dependencies": {
+    "jszip": "^3.10.1"
+  },
+  "devDependencies": {
+    "copy-webpack-plugin": "^12.0.2",
+    "rimraf": "^5.0.5",
+    "webpack": "^5.90.3",
+    "webpack-cli": "^5.1.4"
+  }
+}

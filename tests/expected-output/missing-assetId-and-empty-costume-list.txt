@@ -1,0 +1,6 @@
+checking target 0
+costume 0 was missing assetId, deleted
+costumes was empty, adding empty costume
+checking target 1
+costume 2 was missing assetId, deleted
+costume 1 was missing assetId, deleted
