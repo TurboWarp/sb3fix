@@ -22,6 +22,12 @@ const testcases = fs.readdirSync(inputDirectory)
 const runTestcase = async (testcase) => {
   const data = await fsPromises.readFile(testcase.inputPath);
   const result = await sb3fix(data);
+  if (!result.success) {
+    // We want to log the name first, so we can figure out which testcase failed
+    console.error(`${testcase.name} failed: ${result.error}`);
+    // But we also want to log the entire error and its full stack
+    throw result.error;
+  }
   return {
     fixedZip: new Uint8Array(result.fixedZip),
     log: result.log.join('\n')
