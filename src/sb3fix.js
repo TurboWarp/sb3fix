@@ -376,8 +376,17 @@ const sb3fix = async (data) => {
     return zip;
   };
 
+  const makeZipDeterministicInPlace = (zip) => {
+    // By default, JSZip will use the current date, which makes the zips non-deterministic
+    const date = new Date('Thu, 14 Mar 2024 00:00:00 GMT');
+    for (const file of Object.values(zip.files)) {
+      file.date = date;
+    }
+  };
+
   try {
     const zip = await fixZip();
+    makeZipDeterministicInPlace(zip);
     const compressedZip = await zip.generateAsync({
       type: 'arraybuffer',
       compression: 'DEFLATE'
