@@ -43,7 +43,7 @@ const BUILTIN_EXTENSIONS = [
 
 /**
  * @param {ArrayBuffer|Uint8Array|Blob} data
- * @returns {Promise<{log: string[], fixedZip: ArrayBuffer}>} fixed compressed sb3
+ * @returns {Promise<{success: boolean; fixedZip: ArrayBuffer; log: string[]; error?: unknown;}>} fixed compressed sb3
  */
 const sb3fix = async (data) => {
   const logMessages = [];

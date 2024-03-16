@@ -22,11 +22,17 @@ const run = async () => {
   const projectData = fs.readFileSync('your-broken-project.sb3');
   const result = await sb3fix(projectData); // projectData can be ArrayBuffer, Uint8Array-like, Blob, or File
 
-  const fixedZip = result.fixedZip; // fixedZip is ArrayBuffer
-  const log = result.log; // log is Array of strings
+  console.log(result);
 
-  // sb3fix is deterministic: the same input project always produces the same zip and log
-  // If the zip cannot be fixed, the Promise returned by sb3fix() will reject. You should handle this.
+  const success = result.success; // success is boolean
+  if (success) {
+    const fixedZip = result.fixedZip; // fixedZip is ArrayBuffer
+    const log = result.log; // log is Array of strings
+  } else {
+    const error = result.error; // error is any type (probably an Error, but not necessarily)
+  }
+
+  // sb3fix is deterministic: the same input project always produces the same output
 };
 
 run();
