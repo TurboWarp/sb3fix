@@ -112,6 +112,8 @@
     </ul>
     <p>The best way to see if you're in luck is to just try it.</p>
 
+    <script src="sb3fix.js"></script>
+
     <script>
       /** @type {HTMLFileElement} */
       const input = document.querySelector('.file');
@@ -140,8 +142,6 @@
       });
     </script>
 
-    <script src="dependencies/jszip.min.js"></script>
-    <script src="sb3fix.js"></script>
     <script>
       const stringifyError = (error) => {
         if (error && error.message && error.stack) {
