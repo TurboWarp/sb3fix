@@ -5,6 +5,8 @@
   "main": "src/sb3fix.js",
   "scripts": {
     "build": "webpack -c webpack.config.js",
+    "watch": "webpack --watch -c webpack.config.js",
+    "update": "node tests/snapshots --update",
     "test": "node tests/snapshots --validate"
   },
   "repository": {
