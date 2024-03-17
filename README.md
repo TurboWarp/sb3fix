@@ -25,6 +25,7 @@ const run = async () => {
   // This method returns a Promise. If there is an error, that promise will reject.
   const brokenZip = fs.readFileSync('your-broken-project.sb3');
   const fixedZip = await sb3fix.fixZip(brokenZip);
+  console.log(fixedZip);
 
   // Fix just a project.json with sb3fix.fixJSON()
   // Input can be a parsed project.json object or a string.
@@ -32,7 +33,8 @@ const run = async () => {
   // Output will be a parsed project.json object.
   // This method is NOT async. If there is an error, a plain JavaScript error will be thrown.
   const brokenJSON = fs.readFileSync('your-broken-project.json', 'utf-8');
-  const fixedZip = sb3fix.fixJSON(brokenJSON);
+  const fixedJSON = sb3fix.fixJSON(brokenJSON);
+  console.log(fixedJSON);
 
   // sb3fix is deterministic. The same input will always give the same output, bit-for-bit.
 
