@@ -8,7 +8,10 @@ License, v. 2.0. If a copy of the MPL was not distributed with this
 file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
-const JSZip = require('jszip');
+/**
+ * @typedef Options
+ * @property {(message: string) => void} [logCallback]
+ */
 
 /**
  * @param {unknown} obj
@@ -42,105 +45,154 @@ const BUILTIN_EXTENSIONS = [
 ];
 
 /**
- * @param {ArrayBuffer|Uint8Array|Blob} data
- * @param {{logToConsole?: boolean}} [options]
- * @returns {Promise<{success: boolean; fixedZip: ArrayBuffer; log: string[]; error?: unknown;}>} fixed compressed sb3
+ * @param {object} project Parsed project.json.
+ * @returns {Set<string>} Set of valid extensions, including the primitive ones, that the project loads.
  */
-const sb3fix = async (data, options = {}) => {
-  const logMessages = [];
+const getKnownExtensions = (project) => {
+  const extensions = project.extensions;
+  if (!Array.isArray(extensions)) {
+    throw new Error('extensions is not an array');
+  }
+  for (let i = 0; i < extensions.length; i++) {
+    if (typeof extensions[i] !== 'string') {
+      throw new Error(`extension ${i} is not a string`);
+    }
+  }
+  return new Set([
+    ...BUILTIN_EXTENSIONS,
+    ...extensions
+  ]);
+};
+
+/**
+ * @param {string|object} data project.json as a string or as a parsed object already. If object provided, it will be modified in-place.
+ * @param {Options} [options]
+ * @returns {object} Fixed project.json object. If an object was provided as `data`, the return value will be `data`.
+ */
+const fixJSON = (data, options = {}) => {
   /**
    * @param {string} message
    */
   const log = (message) => {
-    if (options.logToConsole) {
-      console.log(message);
+    if (options.logCallback) {
+      options.logCallback(message);
     }
-    logMessages.push(message);
   };
 
   /**
-   * @returns {Set<string>}
+   * @param {string} id
+   * @param {unknown} variable
    */
-  const getKnownExtensions = (project) => {
-    const extensions = project.extensions;
-    if (!Array.isArray(extensions)) {
-      throw new Error('extensions is not an array');
+  const fixVariableInPlace = (id, variable) => {
+    if (!Array.isArray(variable)) {
+      throw new Error(`variable object ${id} is not an array`);
     }
-    for (let i = 0; i < extensions.length; i++) {
-      if (typeof extensions[i] !== 'string') {
-        throw new Error(`extension ${i} is not a string`);
-      }
+
+    const name = variable[0];
+    if (typeof name !== 'string') {
+      log(`variable or list ${id} name was not a string`);
+      variable[0] = String(variable[0]);
     }
-    return new Set([
-      ...BUILTIN_EXTENSIONS,
-      ...extensions
-    ]);
+
+    const value = variable[1];
+    if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
+      log(`variable ${id} value was not a Scratch-compatible value`);
+      variable[1] = String(variable[1]);
+    }
   };
 
   /**
-   * @param {unknown} project
+   * @param {string} id
+   * @param {unknown} list
    */
-  const fixProjectInPlace = (project) => {
-    if ('objName' in project) {
-      throw new Error('Scratch 2 (sb2) projects not supported');
+  const fixListInPlace = (id, list) => {
+    if (!Array.isArray(list)) {
+      throw new Error(`list object ${id} is not an array`);
     }
 
-    if (!isObject(project)) {
-      throw new Error('project.json is not an object');
+    const name = list[0];
+    if (typeof name !== 'string') {
+      log(`list ${id} name was not a string`);
+      list[0] = String(list[0]);
     }
 
-    const targets = project.targets;
-    if (!Array.isArray(targets)) {
-      throw new Error('targets is not an array');
+    if (!Array.isArray(list[1])) {
+      log(`list ${id} value was not an array`);
+      list[1] = [];
     }
-    if (targets.length < 1) {
-      throw new Error('targets is empty');
-    }
-    for (let i = 0; i < targets.length; i++) {
-      log(`checking target ${i}`);
-      const target = targets[i];
-      if (!isObject(target)) {
-        throw new Error('target is not an object');
+
+    const listValue = list[1];
+    for (let i = 0; i < listValue.length; i++) {
+      const value = listValue[i];
+      if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
+        log(`list ${id} index ${i} was not a Scratch-compatible value`);
+        listValue[i] = String(value);
       }
-      fixTargetInPlace(target);
+    }
+  };
+
+  /**
+   * @param {unknown[]} native
+   */
+  const fixNativeInPlace = (native) => {
+    if (!Array.isArray(native)) {
+      throw new Error('native is not an array');
     }
 
-    const allStages = targets.filter((target) => target.isStage);
-    if (allStages.length !== 1) {
-      throw new Error(`wrong number of stages: ${allStages.length}`);
+    const type = native[0];
+    if (typeof type !== 'number') {
+      throw new Error('native type is not a number');
     }
-    const stageIndex = targets.findIndex((target) => target.isStage);
-    // stageIndex guaranteed to not be -1 by earlier check
-    const stage = targets[stageIndex];
-    // stage must be the first target
-    if (stageIndex !== 0) {
-      log('stage was not at start');
-      targets.splice(stageIndex, 1);
-      targets.unshift(stage);
+    switch (type) {
+      case 12: // Variable: [12, variable name, variable id]
+      case 13: // List: [13, list name, list id]
+        if (native.length !== 3) {
+          throw new Error('variable or list native is of wrong length');
+        }
+        const name = native[1];
+        if (typeof name !== 'string') {
+          log(`variable or list native name was not a string`);
+          native[1] = String(native[1]);
+        }
+        break;
     }
-    // stage's name must match exactly
-    if (stage.name !== 'Stage') {
-      stage.name = 'Stage';
-      log('stage had wrong name');
-    }
+  };
 
-    const knownExtensions = getKnownExtensions(project);
-    const monitors = project.monitors;
-    if (!Array.isArray(monitors)) {
-      throw new Error('monitors is not an array');
+  /**
+   * @param {string} id
+   * @param {unknown} block
+   */
+  const fixBlockInPlace = (id, block) => {
+    if (Array.isArray(block)) {
+      fixNativeInPlace(block);
+    } else if (isObject(block)) {
+      const inputs = block.inputs;
+      if (!isObject(inputs)) {
+        throw new Error('inputs is not an object');
+      }
+      for (const [inputName, input] of Object.entries(inputs)) {
+        if (!Array.isArray(input)) {
+          throw new Error(`block ${id} input ${inputName} is not an array`);
+        }
+        for (let i = 1; i < input.length; i++) {
+          if (Array.isArray(input[i])) {
+            fixNativeInPlace(input[i]);
+          }
+        }
+      }
+
+      const fields = block.fields;
+      if (!isObject(fields)) {
+        throw new Error('fields is not an object');
+      }
+      for (const [fieldName, field] of Object.entries(fields)) {
+        if (!Array.isArray(field)) {
+          throw new Error(`block ${id} field ${fieldName} is not an array`);
+        }
+      }
+    } else {
+      throw new Error(`block ${id} is not an object`);
     }
-    project.monitors = project.monitors.filter((monitor, i) => {
-      const opcode = monitor.opcode;
-      if (typeof opcode !== 'string') {
-        throw new Error(`monitor ${i} opcode is not a string`);
-      }
-      const extension = opcode.split('_')[0];
-      if (!knownExtensions.has(extension)) {
-        log(`removed monitor ${i} from unknown extension ${extension}`);
-        return false;
-      }
-      return true;
-    });
   };
 
   /**
@@ -240,172 +292,121 @@ const sb3fix = async (data, options = {}) => {
   };
 
   /**
-   * @param {string} id
-   * @param {unknown} block
+   * @param {unknown} project
    */
-  const fixBlockInPlace = (id, block) => {
-    if (Array.isArray(block)) {
-      fixNativeInPlace(block);
-    } else if (isObject(block)) {
-      const inputs = block.inputs;
-      if (!isObject(inputs)) {
-        throw new Error('inputs is not an object');
+  const fixProjectInPlace = (project) => {
+    if ('objName' in project) {
+      throw new Error('Scratch 2 (sb2) projects not supported');
+    }
+
+    if (!isObject(project)) {
+      throw new Error('project.json is not an object');
+    }
+
+    const targets = project.targets;
+    if (!Array.isArray(targets)) {
+      throw new Error('targets is not an array');
+    }
+    if (targets.length < 1) {
+      throw new Error('targets is empty');
+    }
+    for (let i = 0; i < targets.length; i++) {
+      log(`checking target ${i}`);
+      const target = targets[i];
+      if (!isObject(target)) {
+        throw new Error('target is not an object');
       }
-      for (const [inputName, input] of Object.entries(inputs)) {
-        if (!Array.isArray(input)) {
-          throw new Error(`block ${id} input ${inputName} is not an array`);
-        }
-        for (let i = 1; i < input.length; i++) {
-          if (Array.isArray(input[i])) {
-            fixNativeInPlace(input[i]);
-          }
-        }
+      fixTargetInPlace(target);
+    }
+
+    const allStages = targets.filter((target) => target.isStage);
+    if (allStages.length !== 1) {
+      throw new Error(`wrong number of stages: ${allStages.length}`);
+    }
+    const stageIndex = targets.findIndex((target) => target.isStage);
+    // stageIndex guaranteed to not be -1 by earlier check
+    const stage = targets[stageIndex];
+    // stage must be the first target
+    if (stageIndex !== 0) {
+      log('stage was not at start');
+      targets.splice(stageIndex, 1);
+      targets.unshift(stage);
+    }
+    // stage's name must match exactly
+    if (stage.name !== 'Stage') {
+      stage.name = 'Stage';
+      log('stage had wrong name');
+    }
+
+    const knownExtensions = getKnownExtensions(project);
+    const monitors = project.monitors;
+    if (!Array.isArray(monitors)) {
+      throw new Error('monitors is not an array');
+    }
+    project.monitors = project.monitors.filter((monitor, i) => {
+      const opcode = monitor.opcode;
+      if (typeof opcode !== 'string') {
+        throw new Error(`monitor ${i} opcode is not a string`);
       }
-
-      const fields = block.fields;
-      if (!isObject(fields)) {
-        throw new Error('fields is not an object');
+      const extension = opcode.split('_')[0];
+      if (!knownExtensions.has(extension)) {
+        log(`removed monitor ${i} from unknown extension ${extension}`);
+        return false;
       }
-      for (const [fieldName, field] of Object.entries(fields)) {
-        if (!Array.isArray(field)) {
-          throw new Error(`block ${id} field ${fieldName} is not an array`);
-        }
-      }
-    } else {
-      throw new Error(`block ${id} is not an object`);
-    }
-  };
-
-  /**
-   * @param {unknown[]} native
-   */
-  const fixNativeInPlace = (native) => {
-    if (!Array.isArray(native)) {
-      throw new Error('native is not an array');
-    }
-
-    const type = native[0];
-    if (typeof type !== 'number') {
-      throw new Error('native type is not a number');
-    }
-    switch (type) {
-      case 12: // Variable: [12, variable name, variable id]
-      case 13: // List: [13, list name, list id]
-        if (native.length !== 3) {
-          throw new Error('variable or list native is of wrong length');
-        }
-        const name = native[1];
-        if (typeof name !== 'string') {
-          log(`variable or list native name was not a string`);
-          native[1] = String(native[1]);
-        }
-        break;
-    }
-  };
-
-  /**
-   * @param {string} id
-   * @param {unknown} variable
-   */
-  const fixVariableInPlace = (id, variable) => {
-    if (!Array.isArray(variable)) {
-      throw new Error(`variable object ${id} is not an array`);
-    }
-
-    const name = variable[0];
-    if (typeof name !== 'string') {
-      log(`variable or list ${id} name was not a string`);
-      variable[0] = String(variable[0]);
-    }
-
-    const value = variable[1];
-    if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
-      log(`variable ${id} value was not a Scratch-compatible value`);
-      variable[1] = String(variable[1]);
-    }
-  };
-
-  /**
-   * @param {string} id
-   * @param {unknown} list
-   */
-  const fixListInPlace = (id, list) => {
-    if (!Array.isArray(list)) {
-      throw new Error(`list object ${id} is not an array`);
-    }
-
-    const name = list[0];
-    if (typeof name !== 'string') {
-      log(`list ${id} name was not a string`);
-      list[0] = String(list[0]);
-    }
-
-    if (!Array.isArray(list[1])) {
-      log(`list ${id} value was not an array`);
-      list[1] = [];
-    }
-
-    const listValue = list[1];
-    for (let i = 0; i < listValue.length; i++) {
-      const value = listValue[i];
-      if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
-        log(`list ${id} index ${i} was not a Scratch-compatible value`);
-        listValue[i] = String(value);
-      }
-    }
-  };
-
-  /**
-   * @returns {Promise<JSZip>}
-   */
-  const fixZip = async () => {
-    // @ts-expect-error
-    const zip = await JSZip.loadAsync(data);
-
-    // project.json is not guaranteed to be stored in the root
-    const projectJSONFile = zip.file(/project\.json/)[0];
-    if (!projectJSONFile) {
-      throw new Error('Could not find project.json.');
-    }
-
-    const projectJSONText = await projectJSONFile.async('text');
-    const projectJSON = JSON.parse(projectJSONText);
-
-    fixProjectInPlace(projectJSON);
-
-    const newProjectJSONText = JSON.stringify(projectJSON);
-    zip.file(projectJSONFile.name, newProjectJSONText);
-
-    return zip;
-  };
-
-  const makeZipDeterministicInPlace = (zip) => {
-    // By default, JSZip will use the current date, which would generated zips non-deterministic
-    const date = new Date('Thu, 14 Mar 2024 00:00:00 GMT');
-    for (const file of Object.values(zip.files)) {
-      file.date = date;
-    }
-  };
-
-  try {
-    const zip = await fixZip();
-    makeZipDeterministicInPlace(zip);
-    const compressedZip = await zip.generateAsync({
-      type: 'arraybuffer',
-      compression: 'DEFLATE'
+      return true;
     });
-    return {
-      success: true,
-      fixedZip: compressedZip,
-      log: logMessages
-    };
-  } catch (error) {
-    return {
-      success: false,
-      error,
-      log: logMessages
-    };
+  };
+
+  if (typeof data === 'object' && data !== null) {
+    // Already parsed.
+    fixProjectInPlace(data);
+    return data;
+  } else if (typeof data === 'string') {
+    // Need to parse.
+    const parsed = JSON.parse(data);
+    fixProjectInPlace(parsed);
+    return parsed;
+  } else {
+    throw new Error('Unable to tell how to interpret input as JSON');
   }
 };
 
-module.exports = sb3fix;
+/**
+ * @param {ArrayBuffer|Uint8Array|Blob} data A compressed .sb3 file.
+ * @param {Options} [options]
+ * @returns {Promise<ArrayBuffer>} A promise that resolves to a fixed compressed .sb3 file.
+ */
+const fixZip = async (data, options = {}) => {
+  // JSZip is not a small library, so we'll load it somewhat lazily.
+  const JSZip = require('jszip');
+
+  const zip = await JSZip.loadAsync(data);
+
+  // project.json is not guaranteed to be stored in the root.
+  const projectJSONFile = zip.file(/project\.json/)[0];
+  if (!projectJSONFile) {
+    throw new Error('Could not find project.json.');
+  }
+
+  const projectJSONText = await projectJSONFile.async('text');
+  const fixedJSON = fixJSON(projectJSONText, options);
+  const newProjectJSONText = JSON.stringify(fixedJSON);
+  zip.file(projectJSONFile.name, newProjectJSONText);
+
+  // By default, JSZip will use the current date as the modified timestamp, which would generated zips non-deterministic.
+  const date = new Date('Thu, 14 Mar 2024 00:00:00 GMT');
+  for (const file of Object.values(zip.files)) {
+    file.date = date;
+  }
+
+  const compressed = await zip.generateAsync({
+    type: 'uint8array',
+    compression: 'DEFLATE'
+  });
+  return compressed;
+};
+
+module.exports = {
+  fixJSON,
+  fixZip
+};

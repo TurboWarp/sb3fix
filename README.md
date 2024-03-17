@@ -2,7 +2,7 @@
 
 https://turbowarp.github.io/sb3fix/
 
-Fix corrupted Scratch projects.
+Fix corrupted Scratch 3 projects.
 
 ## API
 
@@ -19,20 +19,35 @@ const sb3fix = require('@turbowarp/sb3fix');
 const fs = require('fs');
 
 const run = async () => {
-  const projectData = fs.readFileSync('your-broken-project.sb3');
-  const result = await sb3fix(projectData); // projectData can be ArrayBuffer, Uint8Array-like, Blob, or File
+  // Fix an entire zip with sb3fix.fixZip()
+  // Input can be an ArrayBuffer, Uint8Array, Blob, File, or Node.js Buffer.
+  // Output will be Uint8Array.
+  // This method returns a Promise. If there is an error, that promise will reject.
+  const brokenZip = fs.readFileSync('your-broken-project.sb3');
+  const fixedZip = await sb3fix.fixZip(brokenZip);
 
-  console.log(result);
+  // Fix just a project.json with sb3fix.fixJSON()
+  // Input can be a parsed project.json object or a string.
+  // If the input is an object, that object will be modified in-place instead of being copied.
+  // Output will be a parsed project.json object.
+  // This method is NOT async. If there is an error, a plain JavaScript error will be thrown.
+  const brokenJSON = fs.readFileSync('your-broken-project.json', 'utf-8');
+  const fixedZip = sb3fix.fixJSON(brokenJSON);
 
-  const success = result.success; // success is boolean
-  if (success) {
-    const fixedZip = result.fixedZip; // fixedZip is ArrayBuffer
-    const log = result.log; // log is Array of strings
-  } else {
-    const error = result.error; // error is any type (probably an Error, but not necessarily)
-  }
+  // sb3fix is deterministic. The same input will always give the same output, bit-for-bit.
 
-  // sb3fix is deterministic: the same input project always produces the same output
+  // Both sb3fix methods take in an optional options object.
+  const options = {
+    // When sb3fix runs, it'll log what it's doing and what it's found. You can monitor those
+    // using this callback. These messages are primarily a debugging tool, so the exact output
+    // is not considered part of the API. It may change without warning.
+    logCallback: (message) => {
+      console.log(message);
+    }
+  };
+  // To use the above options, just supply as the second argument when you call sb3fix:
+  await sb3fix.fixZip(brokenZip, options);
+  sb3fix.fixJSON(brokenJSON, options);
 };
 
 run();

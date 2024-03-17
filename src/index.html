@@ -163,27 +163,6 @@
         });
         container.appendChild(processingMessage);
 
-        const fixed = await sb3fix(file);
-
-        container.removeChild(processingMessage);
-
-        if (fixed.success) {
-          const blob = new Blob([fixed.fixedZip], {
-            type: 'application/x.scratch.sb3'
-          });
-          const link = document.createElement('a');
-          link.href = URL.createObjectURL(blob);
-          link.download = `fixed ${file.name}`;
-          link.textContent = `Download fixed ${file.name}`;
-          container.appendChild(link);
-        } else {
-          const error = Object.assign(document.createElement('p'), {
-            className: 'error',
-            textContent: `ERROR: ${stringifyError(fixed.error)}`
-          });
-          container.appendChild(error);
-        }
-
         const logContainer = Object.assign(document.createElement('details'), {
           className: 'log-container'
         });
@@ -194,9 +173,38 @@
         const logMessages = Object.assign(document.createElement('textarea'), {
           className: 'log-messages',
           readOnly: true,
-          textContent: fixed.log.join('\n'),
           placeholder: '(empty)'
         });
+
+        try {
+          const startTime = performance.now();
+          const fixed = await sb3fix.fixZip(file, {
+            logCallback: (message) => {
+              const millis = ((performance.now() - startTime) / 1000).toFixed(3);
+              logMessages.textContent += `[${millis}] ${message}\n`;
+            }
+          });
+
+          container.removeChild(processingMessage);
+
+          const blob = new Blob([fixed], {
+            type: 'application/x.scratch.sb3'
+          });
+          const link = document.createElement('a');
+          link.href = URL.createObjectURL(blob);
+          link.download = `fixed ${file.name}`;
+          link.textContent = `Download fixed ${file.name}`;
+          container.appendChild(link);
+        } catch (error) {
+          container.removeChild(processingMessage);
+
+          const errorElement = Object.assign(document.createElement('p'), {
+            className: 'error',
+            textContent: `ERROR: ${stringifyError(error)}`
+          });
+          container.appendChild(errorElement);
+        }
+
         logContainer.appendChild(logSummary);
         logContainer.appendChild(logMessages);
         container.appendChild(logContainer);

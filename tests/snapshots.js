@@ -20,17 +20,16 @@ const testcases = fs.readdirSync(inputDirectory)
   }));
 
 const runTestcase = async (testcase) => {
+  const logs = [];
   const data = await fsPromises.readFile(testcase.inputPath);
-  const result = await sb3fix(data);
-  if (!result.success) {
-    // We want to log the name first, so we can figure out which testcase failed
-    console.error(`${testcase.name} failed: ${result.error}`);
-    // But we also want to log the entire error and its full stack
-    throw result.error;
-  }
+  const result = await sb3fix.fixZip(data, {
+    logCallback: (message) => {
+      logs.push(message);
+    }
+  });
   return {
-    fixedZip: new Uint8Array(result.fixedZip),
-    log: result.log.join('\n')
+    result,
+    log: logs.join('\n')
   };
 };
 
@@ -42,7 +41,7 @@ const validate = async () => {
       const result = await runTestcase(testcase);
 
       assert.equal(result.log, expectedLog, 'log');
-      assert.deepStrictEqual(result.fixedZip, expectedFixedProject, 'project');
+      assert.deepStrictEqual(result.result, expectedFixedProject, 'project');
     });
   }
 };
@@ -58,7 +57,7 @@ const update = async () => {
   for (const testcase of testcases) {
     console.log(`${testcase.name} ...`);
     const result = await runTestcase(testcase);
-    await fsPromises.writeFile(testcase.outputProjectPath, result.fixedZip);
+    await fsPromises.writeFile(testcase.outputProjectPath, result.result);
     await fsPromises.writeFile(testcase.outputLogPath, result.log);
   }
 
