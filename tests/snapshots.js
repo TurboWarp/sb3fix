@@ -3,7 +3,6 @@ const fsPromises = require('node:fs/promises');
 const path = require('node:path');
 const nodeTest = require('node:test');
 const assert = require('node:assert');
-const {rimraf} = require('rimraf');
 
 const sb3fix = require('../src/sb3fix');
 
@@ -49,7 +48,10 @@ const validate = async () => {
 const update = async () => {
   console.time('Updated snapshots');
 
-  await rimraf(outputDirectory);
+  await fsPromises.rm(outputDirectory, {
+    force: true,
+    recursive: true
+  });
   await fsPromises.mkdir(outputDirectory, {
     recursive: true
   });
