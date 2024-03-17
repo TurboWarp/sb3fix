@@ -175,6 +175,9 @@
           readOnly: true,
           placeholder: '(empty)'
         });
+        logContainer.appendChild(logSummary);
+        logContainer.appendChild(logMessages);
+        container.appendChild(logContainer);
 
         try {
           const startTime = performance.now();
@@ -185,8 +188,6 @@
             }
           });
 
-          container.removeChild(processingMessage);
-
           const blob = new Blob([fixed], {
             type: 'application/x.scratch.sb3'
           });
@@ -194,20 +195,18 @@
           link.href = URL.createObjectURL(blob);
           link.download = `fixed ${file.name}`;
           link.textContent = `Download fixed ${file.name}`;
-          container.appendChild(link);
-        } catch (error) {
-          container.removeChild(processingMessage);
+          processingMessage.insertAdjacentElement('afterend', link);
 
+          container.removeChild(processingMessage);
+        } catch (error) {
           const errorElement = Object.assign(document.createElement('p'), {
             className: 'error',
             textContent: `ERROR: ${stringifyError(error)}`
           });
-          container.appendChild(errorElement);
-        }
+          processingMessage.insertAdjacentElement('afterend', errorElement);
 
-        logContainer.appendChild(logSummary);
-        logContainer.appendChild(logMessages);
-        container.appendChild(logContainer);
+          container.removeChild(processingMessage);
+        }
       };
 
       const process = async () => {
