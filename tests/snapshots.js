@@ -9,13 +9,13 @@ const sb3fix = require('../src/sb3fix');
 const inputDirectory = path.join(__dirname, 'samples');
 const outputDirectory = path.join(__dirname, 'expected-output');
 const testcases = fs.readdirSync(inputDirectory)
-  .filter(i => i.endsWith('.sb3'))
+  .filter(i => i.endsWith('.sb3') || i.endsWith('.sprite3'))
   .sort()
   .map(i => ({
     name: i,
     inputPath: path.join(inputDirectory, i),
     outputProjectPath: path.join(outputDirectory, i),
-    outputLogPath: path.join(outputDirectory, i.replace(/\.sb3$/, '.txt')),
+    outputLogPath: path.join(outputDirectory, i.replace(/\.(?:sb|sprite)3$/, '.txt')),
   }));
 
 const runTestcase = async (testcase) => {

@@ -1,0 +1,2 @@
+project is a sprite
+costumes was empty, adding empty costume

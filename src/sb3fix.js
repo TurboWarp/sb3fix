@@ -300,7 +300,14 @@ const fixJSON = (data, options = {}) => {
     }
 
     if (!isObject(project)) {
-      throw new Error('project.json is not an object');
+      throw new Error('Root JSON is not an object');
+    }
+
+    if ('name' in project) {
+      // Not a project. Just a sprite.
+      log('project is a sprite');
+      fixTargetInPlace(project);
+      return;
     }
 
     const targets = project.targets;
@@ -382,16 +389,16 @@ const fixZip = async (data, options = {}) => {
 
   const zip = await JSZip.loadAsync(data);
 
-  // project.json is not guaranteed to be stored in the root.
-  const projectJSONFile = zip.file(/project\.json/)[0];
-  if (!projectJSONFile) {
-    throw new Error('Could not find project.json.');
+  // json is not guaranteed to be stored in the root.
+  const jsonFile = zip.file(/(?:project|sprite)\.json/)[0];
+  if (!jsonFile) {
+    throw new Error('Could not find project.json or sprite.json.');
   }
 
-  const projectJSONText = await projectJSONFile.async('text');
-  const fixedJSON = fixJSON(projectJSONText, options);
+  const jsonText = await jsonFile.async('text');
+  const fixedJSON = fixJSON(jsonText, options);
   const newProjectJSONText = JSON.stringify(fixedJSON);
-  zip.file(projectJSONFile.name, newProjectJSONText);
+  zip.file(jsonFile.name, newProjectJSONText);
 
   // By default, JSZip will use the current date as the modified timestamp, which would generated zips non-deterministic.
   const date = new Date('Thu, 14 Mar 2024 00:00:00 GMT');

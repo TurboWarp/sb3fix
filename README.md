@@ -19,7 +19,7 @@ const sb3fix = require('@turbowarp/sb3fix');
 const fs = require('fs');
 
 const run = async () => {
-  // Fix an entire zip with sb3fix.fixZip()
+  // Fix a .sb3 or .sprite3 with sb3fix.fixZip()
   // Input can be an ArrayBuffer, Uint8Array, Blob, File, or Node.js Buffer.
   // Output will be Uint8Array.
   // This method returns a Promise. If there is an error, that promise will reject.
@@ -27,10 +27,10 @@ const run = async () => {
   const fixedZip = await sb3fix.fixZip(brokenZip);
   console.log(fixedZip);
 
-  // Fix just a project.json with sb3fix.fixJSON()
-  // Input can be a parsed project.json object or a string.
+  // Fix just a project.json or sprite.json with sb3fix.fixJSON()
+  // Input can be a parsed project.json object or a parsed sprite.json object or a string.
   // If the input is an object, that object will be modified in-place instead of being copied.
-  // Output will be a parsed project.json object.
+  // Output will be a parsed project.json object or a parsed sprite.json object depending on input.
   // This method is NOT async. If there is an error, a plain JavaScript error will be thrown.
   const brokenJSON = fs.readFileSync('your-broken-project.json', 'utf-8');
   const fixedJSON = sb3fix.fixJSON(brokenJSON);
