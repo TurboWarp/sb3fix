@@ -181,7 +181,7 @@
           const fixed = await sb3fix.fixZip(file, {
             logCallback: (message) => {
               const millis = ((performance.now() - startTime) / 1000).toFixed(3);
-              logMessages.textContent += `[${millis}] ${message}\n`;
+              logMessages.textContent += `${logMessages.textContent.length > 0 ? '\n' : ''}[${millis}] ${message}`;
             }
           });
 
