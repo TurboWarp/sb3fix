@@ -1,0 +1,2 @@
+checking target 0
+checking target 1

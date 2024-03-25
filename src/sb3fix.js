@@ -134,7 +134,7 @@ const fixJSON = (data, options = {}) => {
   /**
    * @param {unknown[]} native
    */
-  const fixNativeInPlace = (native) => {
+  const fixCompressedNativeInPlace = (native) => {
     if (!Array.isArray(native)) {
       throw new Error('native is not an array');
     }
@@ -144,10 +144,13 @@ const fixJSON = (data, options = {}) => {
       throw new Error('native type is not a number');
     }
     switch (type) {
-      case 12: // Variable: [12, variable name, variable id]
-      case 13: // List: [13, list name, list id]
-        if (native.length !== 3) {
-          throw new Error('variable or list native is of wrong length');
+      // Variable: [12, variable name, variable id, x?, y?]
+      // List: [13, list name, list id, x?, y?]
+      // x and y only present if the native is a top-level block
+      case 12:
+      case 13: {
+        if (native.length !== 3 && native.length !== 5) {
+          throw new Error(`Variable or list native is of unexpected length: ${native.length}`);
         }
         const name = native[1];
         if (typeof name !== 'string') {
@@ -155,6 +158,7 @@ const fixJSON = (data, options = {}) => {
           native[1] = String(native[1]);
         }
         break;
+      }
     }
   };
 
@@ -164,7 +168,7 @@ const fixJSON = (data, options = {}) => {
    */
   const fixBlockInPlace = (id, block) => {
     if (Array.isArray(block)) {
-      fixNativeInPlace(block);
+      fixCompressedNativeInPlace(block);
     } else if (isObject(block)) {
       const inputs = block.inputs;
       if (!isObject(inputs)) {
@@ -176,7 +180,7 @@ const fixJSON = (data, options = {}) => {
         }
         for (let i = 1; i < input.length; i++) {
           if (Array.isArray(input[i])) {
-            fixNativeInPlace(input[i]);
+            fixCompressedNativeInPlace(input[i]);
           }
         }
       }
