@@ -330,23 +330,55 @@ const fixJSON = (data, options = {}) => {
       fixTargetInPlace(target);
     }
 
+    let stage;
     const allStages = targets.filter((target) => target.isStage);
-    if (allStages.length !== 1) {
+    if (allStages.length === 0) {
+      log('stage is missing; adding an empty one');
+      stage = {
+        isStage: true,
+        name: 'Stage',
+        variables: {},
+        lists: {},
+        broadcasts: {},
+        blocks: {},
+        currentCostume: 0,
+        costumes: [
+          {
+            name: 'backdrop1',
+            dataFormat: 'svg',
+            assetId: 'cd21514d0531fdffb22204e0ec5ed84a',
+            md5ext: 'cd21514d0531fdffb22204e0ec5ed84a.svg',
+            rotationCenterX: 240,
+            rotationCenterY: 180
+          }
+        ],
+        sounds: [],
+        volume: 100,
+        layerOrder: 0,
+        tempo: 60,
+        videoTransparency: 50,
+        videoState: "on",
+        textToSpeechLanguage: null
+      };
+      targets.unshift(stage);
+    } else if (allStages.length === 1) {
+      const stageIndex = targets.findIndex((target) => target.isStage);
+      // stageIndex guaranteed to not be -1 by earlier filter check
+      stage = targets[stageIndex];
+      // stage must be the first target
+      if (stageIndex !== 0) {
+        log(`stage was at wrong index: ${stageIndex}`);
+        targets.splice(stageIndex, 1);
+        targets.unshift(stage);
+      }
+    } else {
       throw new Error(`wrong number of stages: ${allStages.length}`);
     }
-    const stageIndex = targets.findIndex((target) => target.isStage);
-    // stageIndex guaranteed to not be -1 by earlier check
-    const stage = targets[stageIndex];
-    // stage must be the first target
-    if (stageIndex !== 0) {
-      log('stage was not at start');
-      targets.splice(stageIndex, 1);
-      targets.unshift(stage);
-    }
+
     // stage's name must match exactly
     if (stage.name !== 'Stage') {
+      log(`stage had wrong name: ${stage.name}`);
       stage.name = 'Stage';
-      log('stage had wrong name');
     }
 
     const knownExtensions = getKnownExtensions(project);
