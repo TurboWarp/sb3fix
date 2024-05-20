@@ -421,7 +421,7 @@ const fixJSON = (data, options = {}) => {
  */
 const fixZip = async (data, options = {}) => {
   // JSZip is not a small library, so we'll load it somewhat lazily.
-  const JSZip = require('jszip');
+  const JSZip = require('@turbowarp/jszip');
 
   const zip = await JSZip.loadAsync(data);
 
