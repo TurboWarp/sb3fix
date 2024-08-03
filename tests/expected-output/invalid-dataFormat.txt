@@ -1,0 +1,3 @@
+checking target 0
+costume 1 is bitmap, had invalid dataFormat webp
+costume 0 is vector, had invalid dataFormat undefined

@@ -218,6 +218,20 @@ const fixJSON = (data, options = {}) => {
         costume.name = String(costume.name);
       }
 
+      // https://github.com/scratchfoundation/scratch-parser/blob/665f05d739a202d565a4af70a201909393d456b2/lib/sb3_definitions.json#L51
+      const knownDataFormats = ['png', 'svg', 'jpeg', 'jpg', 'bmp', 'gif'];
+      if (!knownDataFormats.includes(costume.dataFormat)) {
+        if (typeof costume.md5ext === 'string' && costume.md5ext.endsWith('.svg')) {
+          log(`costume ${i} is vector, had invalid dataFormat ${costume.dataFormat}`);
+          costume.dataFormat = 'svg';
+        } else {
+          log(`costume ${i} is bitmap, had invalid dataFormat ${costume.dataFormat}`);
+          // dataFormat is only really used to detect vector or bitmap, so we don't
+          // need to set this to the real format
+          costume.dataFormat = 'png';
+        }
+      }
+
       if (!('assetId' in costume)) {
         log(`costume ${i} was missing assetId, deleted`);
         costumes.splice(i, 1);
