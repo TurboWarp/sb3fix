@@ -67,7 +67,7 @@ const getKnownExtensions = (project) => {
 /**
  * @param {string|object} data project.json as a string or as a parsed object already. If object provided, it will be modified in-place.
  * @param {Options} [options]
- * @returns {object} Fixed project.json object. If an object was provided as `data`, the return value will be `data`.
+ * @returns {object} Fixed project.json object. If the `data` argument was an object, this will point to the same object.
  */
 const fixJSON = (data, options = {}) => {
   /**
