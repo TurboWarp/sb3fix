@@ -68,10 +68,10 @@ npm ci
 Source code is in the src folder. During development do:
 
 ```bash
-npm run watch
+npm start
 ```
 
-Then open dist/index.html in your favorite browser.
+Then open dist/index.html in your favorite browser (there isn't a localhost development server).
 
 For the final build:
 
