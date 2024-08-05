@@ -40,9 +40,9 @@ const run = async () => {
 
   // Both sb3fix methods take in an optional options object.
   const options = {
-    // When sb3fix runs, it'll log what it's doing and what it's found. You can monitor those
+    // While sb3fix runs, it'll log what it's doing and what it fixed. You can monitor those
     // using this callback. These messages are primarily a debugging tool, so the exact output
-    // is not considered part of the API. It may change without warning.
+    // is not stable and may change without warning.
     logCallback: (message) => {
       console.log(message);
     }
