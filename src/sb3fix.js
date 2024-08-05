@@ -219,8 +219,8 @@ const fixJSON = (data, options = {}) => {
       }
 
       // https://github.com/scratchfoundation/scratch-parser/blob/665f05d739a202d565a4af70a201909393d456b2/lib/sb3_definitions.json#L51
-      const knownDataFormats = ['png', 'svg', 'jpeg', 'jpg', 'bmp', 'gif'];
-      if (!knownDataFormats.includes(costume.dataFormat)) {
+      const knownCostumeFormats = ['png', 'svg', 'jpeg', 'jpg', 'bmp', 'gif'];
+      if (!knownCostumeFormats.includes(costume.dataFormat)) {
         if (typeof costume.md5ext === 'string' && costume.md5ext.endsWith('.svg')) {
           log(`costume ${i} is vector, had invalid dataFormat ${costume.dataFormat}`);
           costume.dataFormat = 'svg';
@@ -259,6 +259,13 @@ const fixJSON = (data, options = {}) => {
       const sound = sounds[i];
       if (!isObject(sound)) {
         throw new Error(`sound ${i} is not an object`);
+      }
+
+      // https://github.com/scratchfoundation/scratch-parser/blob/665f05d739a202d565a4af70a201909393d456b2/lib/sb3_definitions.json#L81
+      const knownSoundFormats = ['wav', 'wave', 'mp3'];
+      if (!knownSoundFormats.includes(sound.dataFormat)) {
+        log(`sound ${i} had invalid dataFormat ${sound.dataFormat}`);
+        sound.dataFormat = 'mp3';
       }
 
       if (typeof sound.name !== 'string') {
