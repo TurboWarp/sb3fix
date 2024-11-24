@@ -1,0 +1,6 @@
+checking target 0
+checking target 1
+checking target 2
+checking target 3
+removing extra stage at index 3
+removing extra stage at index 1

@@ -351,11 +351,10 @@ const fixJSON = (data, options = {}) => {
       fixTargetInPlace(target);
     }
 
-    let stage;
     const allStages = targets.filter((target) => target.isStage);
     if (allStages.length === 0) {
       log('stage is missing; adding an empty one');
-      stage = {
+      targets.unshift({
         isStage: true,
         name: 'Stage',
         variables: {},
@@ -380,21 +379,30 @@ const fixJSON = (data, options = {}) => {
         videoTransparency: 50,
         videoState: "on",
         textToSpeechLanguage: null
-      };
-      targets.unshift(stage);
-    } else if (allStages.length === 1) {
-      const stageIndex = targets.findIndex((target) => target.isStage);
-      // stageIndex guaranteed to not be -1 by earlier filter check
-      stage = targets[stageIndex];
-      // stage must be the first target
-      if (stageIndex !== 0) {
-        log(`stage was at wrong index: ${stageIndex}`);
-        targets.splice(stageIndex, 1);
+      });
+    } else {
+      // We will accept the first stage in targets as the real stage
+      const firstStageIndex = targets.findIndex((target) => target.isStage);
+
+      // Stage must be the first target
+      if (firstStageIndex !== 0) {
+        log(`stage was at wrong index: ${firstStageIndex}`);
+        const stage = targets[firstStageIndex];
+        targets.splice(firstStageIndex, 1);
         targets.unshift(stage);
       }
-    } else {
-      throw new Error(`wrong number of stages: ${allStages.length}`);
+
+      // Remove all the other stages
+      for (let i = targets.length - 1; i > 0; i--) {
+        if (targets[i].isStage) {
+          log(`removing extra stage at index ${i}`);
+          targets.splice(i, 1);
+        }
+      }
     }
+
+    // Above checks ensure this invariant holds
+    const stage = targets[0];
 
     // stage's name must match exactly
     if (stage.name !== 'Stage') {
