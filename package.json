@@ -1,6 +1,6 @@
 {
   "name": "@turbowarp/sb3fix",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Fix corrupted Scratch projects",
   "main": "src/sb3fix.js",
   "scripts": {
