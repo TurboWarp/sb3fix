@@ -200,6 +200,29 @@ const fixJSON = (data, options = {}) => {
   };
 
   /**
+   * @param {string} id
+   * @param {unknown} comment
+   */
+  const fixCommentInPlace = (id, comment) => {
+    if (!isObject(comment)) {
+      throw new Error('comment is not an object');
+    }
+
+    if (typeof comment.text !== 'string') {
+      throw new Error('comment text is not a string');
+    }
+
+    // Scratch requires comments to not exceed 8000 characters.
+    // We'll store the excess in .extraText so the text won't be truncated if opened in TurboWarp.
+    const MAX_LENGTH = 8000;
+    if (comment.text.length > MAX_LENGTH) {
+      log(`comment ${id} had length ${comment.text.length}`);
+      comment.extraText = comment.text.substring(MAX_LENGTH);
+      comment.text = comment.text.substring(0, MAX_LENGTH);
+    }
+  };
+
+  /**
    * @param {unknown} target
    */
   const fixTargetInPlace = (target) => {
@@ -285,6 +308,14 @@ const fixJSON = (data, options = {}) => {
     }
     for (const [blockId, block] of Object.entries(blocks)) {
       fixBlockInPlace(blockId, block);
+    }
+
+    // Comments are not required
+    const comments = target.comments;
+    if (comments) {
+      for (const [commentId, comment] of Object.entries(comments)) {
+        fixCommentInPlace(commentId, comment);
+      }
     }
 
     const variables = target.variables;
