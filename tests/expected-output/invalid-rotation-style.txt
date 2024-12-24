@@ -1,0 +1,6 @@
+checking target 0
+checking target 1
+sprite had invalid rotation style bwah
+checking target 2
+checking target 3
+checking target 4

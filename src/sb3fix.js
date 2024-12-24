@@ -345,6 +345,16 @@ const fixJSON = (data, options = {}) => {
         target.layerOrder = 1;
       }
     }
+
+    const ROTATION_STYLES = [
+      'all around',
+      'don\'t rotate',
+      'left-right'
+    ];
+    if (!target.isStage && !ROTATION_STYLES.includes(target.rotationStyle)) {
+      log(`sprite had invalid rotation style ${target.rotationStyle}`);
+      target.rotationStyle = 'all around';
+    }
   };
 
   /**
