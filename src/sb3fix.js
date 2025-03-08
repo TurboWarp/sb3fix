@@ -144,6 +144,19 @@ const fixJSON = (data, options = {}) => {
       throw new Error('native type is not a number');
     }
     switch (type) {
+      // Color: [9, hex color]
+      case 9: {
+        if (native.length !== 2) {
+          throw new Error(`Color native is of unexpected length: ${native.length}`);
+        }
+        const color = native[1];
+        if (typeof color !== 'string' || !/^#[a-f0-9]{6}$/i.test(color)) {
+          log('color native had invalid value');
+          native[1] = '#000000';
+        }
+        break;
+      }
+
       // Variable: [12, variable name, variable id, x?, y?]
       // List: [13, list name, list id, x?, y?]
       // x and y only present if the native is a top-level block
