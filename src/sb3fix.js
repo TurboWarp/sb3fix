@@ -355,6 +355,20 @@ const fixJSON = (data, options = {}) => {
       log(`sprite had invalid rotation style ${target.rotationStyle}`);
       target.rotationStyle = 'all around';
     }
+
+    if (!target.isStage) {
+      const x = target.x;
+      if (typeof x !== 'number') {
+        log(`target x was ${typeof x}: ${x}`);
+        target.x = +x || 0;
+      }
+  
+      const y = target.y;
+      if (typeof y !== 'number') {
+        log(`target y was ${typeof y}: ${y}`);
+        target.y = +y || 0;
+      }
+    }
   };
 
   /**

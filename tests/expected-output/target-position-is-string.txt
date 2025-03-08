@@ -1,0 +1,4 @@
+checking target 0
+checking target 1
+target x was string: 10
+target y was string: bwah
