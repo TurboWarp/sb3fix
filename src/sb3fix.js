@@ -143,7 +143,29 @@ const fixJSON = (data, options = {}) => {
     if (typeof type !== 'number') {
       throw new Error('native type is not a number');
     }
+
     switch (type) {
+      // Number primitive: [4, string|number]
+      // Positive number primitive: [5, string|number]
+      // Whole number primitive: [6, string|number]
+      // Integer primitive: [7, string|number]
+      // Angle primitive: [8, string|number]
+      case 4:
+      case 5:
+      case 6:
+      case 7:
+      case 8: {
+        if (native.length !== 2) {
+          throw new Error(`Number native is of unexpected length: ${native.length}`);
+        }
+        const value = native[1];
+        if (typeof value !== 'string' && typeof value !== 'number') {
+          log('number native had invalid value');
+          native[1] = String(value);
+        }
+        break;
+      }
+
       // Color: [9, hex color]
       case 9: {
         if (native.length !== 2) {
@@ -153,6 +175,19 @@ const fixJSON = (data, options = {}) => {
         if (typeof color !== 'string' || !/^#[a-f0-9]{6}$/i.test(color)) {
           log('color native had invalid value');
           native[1] = '#000000';
+        }
+        break;
+      }
+
+      // Text: [10, string|number]
+      case 10: {
+        if (native.length !== 2) {
+          throw new Error(`Text native is of unexpected length: ${native.length}`);
+        }
+        const value = native[1];
+        if (typeof value !== 'string' && typeof value !== 'number') {
+          log('text native had invalid value');
+          native[1] = String(value);
         }
         break;
       }

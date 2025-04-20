@@ -1,0 +1,6 @@
+checking target 0
+checking target 1
+number native had invalid value
+number native had invalid value
+text native had invalid value
+text native had invalid value
