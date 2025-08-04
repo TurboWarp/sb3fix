@@ -26,6 +26,7 @@ const isObject = (obj) => !!obj && typeof obj === 'object';
 
 /**
  * @typedef PlatformInfo
+ * @property {boolean} [allowsNonScalarVariables]
  */
 
 /**
@@ -33,7 +34,9 @@ const isObject = (obj) => !!obj && typeof obj === 'object';
  */
 const platforms = {
   scratch: {},
-  turbowarp: {}
+  turbowarp: {
+    allowsNonScalarVariables: true
+  }
 };
 
 /**
@@ -127,10 +130,12 @@ const fixJSON = (data, options = {}) => {
       variable[0] = String(variable[0]);
     }
 
-    const value = variable[1];
-    if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
-      log(`variable ${id} value was not a Scratch-compatible value`);
-      variable[1] = String(variable[1]);
+    if (!platform.allowsNonScalarVariables) {
+      const value = variable[1];
+      if (typeof value !== 'number' && typeof value !== 'string' && typeof value !== 'boolean') {
+        log(`variable ${id} value was not a Scratch-compatible value`);
+        variable[1] = String(variable[1]);
+      }
     }
   };
 
