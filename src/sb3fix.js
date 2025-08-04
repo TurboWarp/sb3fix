@@ -9,7 +9,12 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 */
 
 /**
+ * @typedef {'scratch'|'turbowarp'} Platform
+ */
+
+/**
  * @typedef Options
+ * @property {Platform} [platform] Defaults to 'scratch'.
  * @property {(message: string) => void} [logCallback]
  */
 
@@ -18,6 +23,32 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
  * @returns {obj is object}
  */
 const isObject = (obj) => !!obj && typeof obj === 'object';
+
+/**
+ * @typedef PlatformInfo
+ */
+
+/**
+ * @type {Record<Platform, PlatformInfo>}
+ */
+const platforms = {
+  scratch: {},
+  turbowarp: {}
+};
+
+/**
+ * @param {Options} options
+ * @returns {PlatformInfo}
+ */
+const getPlatform = (options) => {
+  if (options && Object.prototype.hasOwnProperty.call(options, 'platform')) {
+    if (Object.prototype.hasOwnProperty.call(platforms, options.platform)) {
+      return platforms[options.platform];
+    }
+    throw new Error(`Unknown platform: ${options.platform}`);
+  }
+  return platforms.scratch;
+};
 
 const BUILTIN_EXTENSIONS = [
   'control',
@@ -70,6 +101,8 @@ const getKnownExtensions = (project) => {
  * @returns {object} Fixed project.json object. If the `data` argument was an object, this will point to the same object.
  */
 const fixJSON = (data, options = {}) => {
+  const platform = getPlatform(options);
+
   /**
    * @param {string} message
    */
@@ -602,5 +635,6 @@ const fixZip = async (data, options = {}) => {
 
 module.exports = {
   fixJSON,
-  fixZip
+  fixZip,
+  platforms
 };
