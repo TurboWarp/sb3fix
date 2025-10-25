@@ -1,0 +1,3 @@
+checking target 0
+checking target 1
+stage had invalid videoState: false
