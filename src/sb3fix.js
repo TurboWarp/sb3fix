@@ -609,10 +609,46 @@ const fixJSON = (data, options = {}) => {
  * @returns {Promise<Uint8Array>} A promise that resolves to a fixed compressed .sb3 file.
  */
 const fixZip = async (data, options = {}) => {
+  /**
+   * @param {string} message
+   */
+  const log = (message) => {
+    if (options.logCallback) {
+      options.logCallback(message);
+    }
+  };
+
   // JSZip is not a small library, so we'll load it somewhat lazily.
   const JSZip = require('@turbowarp/jszip');
 
-  const zip = await JSZip.loadAsync(data);
+  let zip = await JSZip.loadAsync(data, {
+    recoverCorrupted: true,
+    onCorruptCentralDirectory: (error) => {
+      log(`zip had corrupt central directory: ${error}`);
+    },
+    onUnrecoverableFileEntry: (error) => {
+      log(`zip had unrecoverable file entry: ${error}`);
+    }
+  });
+
+  /** @type {Array<[string, import("@turbowarp/jszip").JSZipObject]>} */
+  const zipFiles = [];
+  zip.forEach((relativePath, file) => {
+    zipFiles.push([relativePath, file]);
+  });
+
+  // Remove any unreadable files from the zip. This can notably happen if the compressed data in the zip was
+  // corrupted, which would make the uncompressed data size field not match. Scratch/JSZip will refuse to
+  // keep loading the project if that happens. If we remove the asset, at least there's a chance it can now
+  // be downloaded from the asset server instead.
+  for (const [relativePath, file] of zipFiles) {
+    try {
+      await file.async('uint8array');
+    } catch (error) {
+      log(`zip had unreadable file ${relativePath}: ${error}`);
+      zip.remove(relativePath);
+    }
+  }
 
   // json is not guaranteed to be stored in the root.
   const jsonFile = zip.file(/(?:project|sprite)\.json/)[0];
