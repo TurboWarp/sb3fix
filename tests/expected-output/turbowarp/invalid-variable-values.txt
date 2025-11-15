@@ -1,0 +1,4 @@
+checking target 0
+list nf(jE2GO9Mw*c7)~RxKv value was not an array
+checking target 1
+list 3.vwk($=q-/jw5_[2z)2 index 0 was not a Scratch-compatible value
