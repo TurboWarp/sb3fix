@@ -568,7 +568,7 @@ const fixJSON = (data, options = {}) => {
 /**
  * @param {ArrayBuffer|Uint8Array|Blob} data A compressed .sb3 file.
  * @param {Options} [options]
- * @returns {Promise<ArrayBuffer>} A promise that resolves to a fixed compressed .sb3 file.
+ * @returns {Promise<Uint8Array>} A promise that resolves to a fixed compressed .sb3 file.
  */
 const fixZip = async (data, options = {}) => {
   // JSZip is not a small library, so we'll load it somewhat lazily.
