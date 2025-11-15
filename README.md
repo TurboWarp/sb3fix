@@ -45,7 +45,9 @@ const run = async () => {
     // is not stable and may change without warning.
     logCallback: (message) => {
       console.log(message);
-    }
+    },
+    // Values: 'scratch' (default), 'turbowarp'
+    platform: 'scratch'
   };
   // To use the above options, just supply as the second argument when you call sb3fix:
   await sb3fix.fixZip(brokenZip, options);
