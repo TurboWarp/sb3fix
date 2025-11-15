@@ -46,9 +46,13 @@ const run = async () => {
     logCallback: (message) => {
       console.log(message);
     },
+
+    // Different runtimes support different features. A project that is invalid in Scratch might
+    // be valid for another runtime. This lets you control which runtime sb3fix targets.
     // Values: 'scratch' (default), 'turbowarp'
     platform: 'scratch'
   };
+
   // To use the above options, just supply as the second argument when you call sb3fix:
   await sb3fix.fixZip(brokenZip, options);
   sb3fix.fixJSON(brokenJSON, options);
