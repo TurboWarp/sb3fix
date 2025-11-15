@@ -21,7 +21,7 @@
   },
   "homepage": "https://github.com/TurboWarp/sb3fix#readme",
   "dependencies": {
-    "@turbowarp/jszip": "^3.11.1"
+    "@turbowarp/jszip": "^3.12.0"
   },
   "devDependencies": {
     "copy-webpack-plugin": "^13.0.0",

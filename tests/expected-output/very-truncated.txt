@@ -1,0 +1,4 @@
+zip had corrupt central directory: Error: Corrupted zip: can't find end of central directory
+zip had unrecoverable file entry: Error: End of data reached (data length = 1000, asked index = 2194). Corrupted zip ?
+checking target 0
+checking target 1
