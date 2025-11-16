@@ -158,10 +158,10 @@
     <p>A Scratch project has three main components that can be "corrupted" in different ways.</p>
     <p>
       Scratch project files are zip files.
-      The zip file can often be corrupted by a storage device failure, for example due to a power outage or not ejecting a USB drive before unplugging.
+      The zip file can often be corrupted by a storage device failure, for example, due to a power outage or not ejecting a USB drive before unplugging.
       Scratch and most other tools that open zips don't know how to handle corruption.
       sb3fix uses an <a href="https://www.construct.net/en/blogs/ashleys-blog-2/recovering-corrupt-zip-files-1895">alternative approach</a> that lets it read a zip file even when the "central directory" used by most apps is missing or corrupt.
-      Depending on how bad the zip is corrupted, sb3fix might recover your project in its entirety or may miss significant parts.
+      Depending on how badly the zip is corrupted, sb3fix might recover your project in its entirety or may miss significant parts.
     </p>
     <details>
       <summary>Example of error messages due to zip corruption</summary>
@@ -176,9 +176,8 @@
       This file contains your project's sprites, scripts, variables, lists, and metadata about costumes and sounds.
       When you load a project, Scratch checks that all parts of the JSON are in the correct format.
       There are bugs that allow the project.json that gets generated when you save your project to not pass these checks.
-      sb3fix checks for a bunch of these failures cases and changes the JSON to make the checks pass.
+      sb3fix checks for a bunch of these failure cases and changes the JSON to make the checks pass.
       This usually results in your whole project being recovered, and writing new fixes is usually easy when we become aware of missing fixes.
-      Corruption in project.json tends to result in error messages like:
     </p>
     <details>
       <summary>Examples of error messages due to project.json corruption</summary>
@@ -195,9 +194,9 @@
       </ul>
     </details>
     <p>
-      The last part of a Scratch project are your project's costumes and sounds, known as assets.
-      Assets are also files in the zip and are use standard file formats such as <a href="https://en.wikipedia.org/wiki/PNG">PNG</a>, <a href="https://en.wikipedia.org/wiki/SVG">SVG</a>, <a href="https://en.wikipedia.org/wiki/WAV">WAV</a>, and others.
-      Corrupted costumes appear as a question mark in a gray box, and corrupted sounds appear are replaced with zero second sounds.
+      The last part of a Scratch project is your project's costumes and sounds, known as assets.
+      Assets are also files in the zip and use standard file formats such as <a href="https://en.wikipedia.org/wiki/PNG">PNG</a>, <a href="https://en.wikipedia.org/wiki/SVG">SVG</a>, <a href="https://en.wikipedia.org/wiki/WAV">WAV</a>, and others.
+      Corrupted costumes appear as a question mark in a gray box, and corrupted sounds are replaced with zero-second sounds.
       There are other bugs that can result in these symptoms even if the asset is not corrupt.
       Some corrupted costumes load fine but cause a crash if you try to edit them.
       At this time, sb3fix does not attempt to fix asset corruption beyond our attempts to fix zip corruption.
