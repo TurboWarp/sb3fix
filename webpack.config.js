@@ -15,6 +15,10 @@ module.exports = {
         {
           from: 'src/index.html',
           to: 'index.html'
+        },
+        {
+          from: 'static',
+          to: ''
         }
       ]
     })

@@ -37,12 +37,49 @@
       }
 
       body {
+        margin: 0;
+      }
+      main {
         max-width: 720px;
         margin: auto;
         padding: 0 8px;
       }
       summary {
         cursor: pointer;
+      }
+
+      .header {
+        background-color: #ff4c4c;
+        color: white;
+        font-weight: bold;
+        font-size: 1.1em;
+      }
+      .header-inner {
+        display: flex;
+        max-width: 720px;
+        margin: 0 auto;
+        justify-content: space-between;
+      }
+      .header a {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.5rem 0.25rem 0.5rem 0;
+        align-items: center;
+        text-decoration: none;
+        color: inherit !important;
+      }
+      .header a:hover {
+        text-decoration: underline;
+      }
+      .header img {
+        width: 2rem;
+        height: 2rem;
+        flex-shrink: 0;
+      }
+      @media (prefers-color-scheme: dark) {
+        .header {
+          background-color: #333;
+        }
       }
 
       .input-container {
@@ -115,103 +152,114 @@
   </head>
 
   <body>
+    <div class="header">
+      <div class="header-inner">
+        <a href="https://turbowarp.org/">
+          <img src="turbowarp.svg" alt="">
+          <span>TurboWarp</span>
+        </a>
+      </div>
+    </div>
+
     <div class="drop-indicator"></div>
 
-    <h1>sb3fix - fix corrupted Scratch projects</h1>
-    <p>
-      sb3fix fixes common problems that make Scratch projects not be able to load.
-      It's not magic, but it has successfully recovered <i>many</i> projects and continues to improve.
-      Just put your projects into the input below.
-    </p>
-    <p>
-      If you use TurboWarp, please first try File &gt; Restore Points to access a previous version of your project.
-    </p>
-    <p>
-      <span class="new">New!</span>
-      sb3fix can now fix zip corruption issues automatically.
-      This fixes most errors about "corrupted zip" or "uncompressed data size mismatch".
-    </p>
+    <main>
+      <h1>sb3fix - fix corrupted Scratch projects</h1>
+      <p>
+        sb3fix fixes common problems that make Scratch projects not be able to load.
+        It's not magic, but it has successfully recovered <i>many</i> projects and continues to improve.
+        Just put your projects into the input below.
+      </p>
+      <p>
+        If you use TurboWarp, please first try File &gt; Restore Points to access a previous version of your project.
+      </p>
+      <p>
+        <span class="new">New!</span>
+        sb3fix can now fix zip corruption issues automatically.
+        This fixes most errors about "corrupted zip" or "uncompressed data size mismatch".
+      </p>
 
-    <noscript><p><b>sb3fix requires JavaScript. This lets us do all the processing in your browser instead of uploading to a server.</b></p></noscript>
+      <noscript><p><b>sb3fix requires JavaScript. This lets us do all the processing in your browser instead of uploading to a server.</b></p></noscript>
 
-    <p class="input-container">
-      <label>
-        Files to fix:
-        <input class="file" type="file" accept=".sb3, .sprite3, .json" multiple autocomplete="off">
-      </label>
+      <p class="input-container">
+        <label>
+          Files to fix:
+          <input class="file" type="file" accept=".sb3, .sprite3, .json" multiple autocomplete="off">
+        </label>
 
-      <label>
-        Platform:
-        <select class="platform">
-          <option value="scratch" selected>Scratch</option>
-          <option value="turbowarp">TurboWarp</option>
-        </select>
-      </label>
-    </p>
+        <label>
+          Platform:
+          <select class="platform">
+            <option value="scratch" selected>Scratch</option>
+            <option value="turbowarp">TurboWarp</option>
+          </select>
+        </label>
+      </p>
 
-    <div class="output"></div>
+      <div class="output"></div>
 
-    <h2>If your project is still broken</h2>
-    <p>Please get your project to us. A real human will try to fix your project. If you have a GitHub account, the easiest way is to <a href="https://github.com/TurboWarp/sb3fix/issues/new">open a GitHub issue</a>. Put your project file inside a zip, then you'll be able to attach it to the issue.</p>
-    <p>Don't waste your time asking AI to fix corrupted projects. It won't be able to help you, but it will happily gaslight you into thinking it does.</p>
+      <h2>If your project is still broken</h2>
+      <p>Please get your project to us. A real human will try to fix your project. If you have a GitHub account, the easiest way is to <a href="https://github.com/TurboWarp/sb3fix/issues/new">open a GitHub issue</a>. Put your project file inside a zip, then you'll be able to attach it to the issue.</p>
+      <p>Don't waste your time asking AI to fix corrupted projects. It won't be able to help you, but it will happily gaslight you into thinking it does.</p>
 
-    <h2>How sb3fix works</h2>
-    <p>A Scratch project has three main components that can be "corrupted" in different ways.</p>
-    <p>
-      Scratch project files are zip files.
-      The zip file can often be corrupted by a storage device failure, for example, due to a power outage or not ejecting a USB drive before unplugging.
-      Scratch and most other tools that open zips don't know how to handle corruption.
-      sb3fix uses an <a href="https://www.construct.net/en/blogs/ashleys-blog-2/recovering-corrupt-zip-files-1895">alternative approach</a> that lets it read a zip file even when the "central directory" used by most apps is missing or corrupt.
-      Depending on how badly the zip is corrupted, sb3fix might recover your project in its entirety or may miss significant parts.
-    </p>
-    <details>
-      <summary>Examples of error messages due to zip corruption</summary>
-      <ul class="error-list">
-        <li><code>Failed to unzip and extract project.json, with error: Error: Corrupted zip: can't find end of central directory</code></li>
-        <li><code>Failed to unzip and extract project.json, with error: Corrupted zip or bug: unexpected signature (\x00\x00\x00\x00, expected \x50\x4B\x03\x04)</code></li>
-        <li><code>Bug : uncompressed data size mismatch</code></li>
-      </ul>
-    </details>
-    <p>
-      Inside the zip is a file called <a href="https://en.scratch-wiki.info/wiki/Scratch_File_Format#Format">project.json</a>.
-      This file contains your project's sprites, scripts, variables, lists, and metadata about costumes and sounds.
-      When you load a project, Scratch checks that all parts of the JSON are in the correct format.
-      There are bugs that allow the project.json that gets generated when you save your project to not pass these checks.
-      sb3fix checks for a bunch of these failure cases and changes the JSON to make the checks pass.
-      This usually results in your whole project being recovered, and writing new fixes is usually easy when we become aware of missing fixes.
-    </p>
-    <details>
-      <summary>Examples of error messages due to project.json corruption</summary>
-      <ul class="error-list">
-        <li><code>Error: Unknown extension: ...</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].variables['32!k|mRA^e^r;{*i9Z[p-getParam,number1,r-'][0]","schemaPath":"#/items/0/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].costumes[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].sounds[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/0/type","params":{"type":"string"},"message":"should be string"},{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/1/type","params":{"type":"null"},"message":"should be null"}, ...}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[0].name","schemaPath":"sb3_definitions.json#/definitions/stage/properties/name/enum","params":{"allowedValues":["Stage"]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"minItems","dataPath":".targets[0].costumes","schemaPath":"#/properties/costumes/minItems","params":{"limit":1},"message":"should NOT have less than 1 items"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"required","dataPath":".targets[0].costumes[0]","schemaPath":"#/required","params":{"missingProperty":"assetId"},"message":"should have required property 'assetId'"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf/0/type","params":{"type":"string"},"message":"should be string"},{"keyword":"type","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf/1/type","params":{"type":"number"},"message":"should be number"},{"keyword":"oneOf","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf","params":{"passingSchemas":null},"message":"should match exactly one schema in oneOf"}...}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[0].videoState","schemaPath":"sb3_definitions.json#/definitions/stage/properties/videoState/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].x","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/x/type","params":{"type":"number"},"message":"should be number"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"maxLength","dataPath":".targets[0].comments['d'].text","schemaPath":"#/properties/text/maxLength","params":{"limit":8000},"message":"should NOT be longer than 8000 characters"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[1].rotationStyle","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/rotationStyle/enum","params":{"allowedValues":["all around","don't rotate","left-right"]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-        <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[1].isStage","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/isStage/enum","params":{"allowedValues":[false]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
-      </ul>
-    </details>
-    <p>
-      The last part of a Scratch project is your project's costumes and sounds, known as assets.
-      Assets are also files in the zip and use standard file formats such as <a href="https://en.wikipedia.org/wiki/PNG">PNG</a>, <a href="https://en.wikipedia.org/wiki/SVG">SVG</a>, <a href="https://en.wikipedia.org/wiki/WAV">WAV</a>, and others.
-      Corrupted costumes appear as a question mark in a gray box, and corrupted sounds are replaced with zero-second sounds.
-      There are other bugs that can result in these symptoms even if the asset is not corrupt.
-      Some corrupted costumes load fine but cause a crash if you try to edit them.
-      At this time, sb3fix does not attempt to fix asset corruption beyond our attempts to fix zip corruption.
-      Asset corruption is not common and is rarely catastrophic as the rest of the project can still load.
-    </p>
-    <p>sb3fix is open source at <a href="https://github.com/TurboWarp/sb3fix">https://github.com/TurboWarp/sb3fix</a></p>
+      <h2>How sb3fix works</h2>
+      <p>A Scratch project has three main components that can be "corrupted" in different ways.</p>
+      <p>
+        Scratch project files are zip files.
+        The zip file can often be corrupted by a storage device failure, for example, due to a power outage or not ejecting a USB drive before unplugging.
+        Scratch and most other tools that open zips don't know how to handle corruption.
+        sb3fix uses an <a href="https://www.construct.net/en/blogs/ashleys-blog-2/recovering-corrupt-zip-files-1895">alternative approach</a> that lets it read a zip file even when the "central directory" used by most apps is missing or corrupt.
+        Depending on how badly the zip is corrupted, sb3fix might recover your project in its entirety or may miss significant parts.
+      </p>
+      <details>
+        <summary>Examples of error messages due to zip corruption</summary>
+        <ul class="error-list">
+          <li><code>Failed to unzip and extract project.json, with error: Error: Corrupted zip: can't find end of central directory</code></li>
+          <li><code>Failed to unzip and extract project.json, with error: Corrupted zip or bug: unexpected signature (\x00\x00\x00\x00, expected \x50\x4B\x03\x04)</code></li>
+          <li><code>Bug : uncompressed data size mismatch</code></li>
+        </ul>
+      </details>
+      <p>
+        Inside the zip is a file called <a href="https://en.scratch-wiki.info/wiki/Scratch_File_Format#Format">project.json</a>.
+        This file contains your project's sprites, scripts, variables, lists, and metadata about costumes and sounds.
+        When you load a project, Scratch checks that all parts of the JSON are in the correct format.
+        There are bugs that allow the project.json that gets generated when you save your project to not pass these checks.
+        sb3fix checks for a bunch of these failure cases and changes the JSON to make the checks pass.
+        This usually results in your whole project being recovered, and writing new fixes is usually easy when we become aware of missing fixes.
+      </p>
+      <details>
+        <summary>Examples of error messages due to project.json corruption</summary>
+        <ul class="error-list">
+          <li><code>Error: Unknown extension: ...</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].variables['32!k|mRA^e^r;{*i9Z[p-getParam,number1,r-'][0]","schemaPath":"#/items/0/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].costumes[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].sounds[0].name","schemaPath":"#/properties/name/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/0/type","params":{"type":"string"},"message":"should be string"},{"keyword":"type","dataPath":".targets[2].blocks['b'].inputs['MESSAGE'][1]","schemaPath":"#/definitions/optionalString/oneOf/1/type","params":{"type":"null"},"message":"should be null"}, ...}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[0].name","schemaPath":"sb3_definitions.json#/definitions/stage/properties/name/enum","params":{"allowedValues":["Stage"]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"minItems","dataPath":".targets[0].costumes","schemaPath":"#/properties/costumes/minItems","params":{"limit":1},"message":"should NOT have less than 1 items"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"required","dataPath":".targets[0].costumes[0]","schemaPath":"#/required","params":{"missingProperty":"assetId"},"message":"should have required property 'assetId'"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf/0/type","params":{"type":"string"},"message":"should be string"},{"keyword":"type","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf/1/type","params":{"type":"number"},"message":"should be number"},{"keyword":"oneOf","dataPath":".targets[0].variables['`jEk@4|i[#Fk?(8x)AV.-my variable'][1]","schemaPath":"#/definitions/stringOrNumber/oneOf","params":{"passingSchemas":null},"message":"should match exactly one schema in oneOf"}...}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[0].videoState","schemaPath":"sb3_definitions.json#/definitions/stage/properties/videoState/type","params":{"type":"string"},"message":"should be string"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"type","dataPath":".targets[1].x","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/x/type","params":{"type":"number"},"message":"should be number"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"maxLength","dataPath":".targets[0].comments['d'].text","schemaPath":"#/properties/text/maxLength","params":{"limit":8000},"message":"should NOT be longer than 8000 characters"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[1].rotationStyle","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/rotationStyle/enum","params":{"allowedValues":["all around","don't rotate","left-right"]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+          <li><code>Could not load project: {"validationError":"Could not parse as a valid SB2 or SB3 project.","sb3Errors":[{"keyword":"enum","dataPath":".targets[1].isStage","schemaPath":"sb3_definitions.json#/definitions/sprite/properties/isStage/enum","params":{"allowedValues":[false]},"message":"should be equal to one of the allowed values"}],"sb2Errors":[{"keyword":"required","dataPath":"","schemaPath":"#/required","params":{"missingProperty":"objName"},"message":"should have required property 'objName'"}]}</code></li>
+        </ul>
+      </details>
+      <p>
+        The last part of a Scratch project is your project's costumes and sounds, known as assets.
+        Assets are also files in the zip and use standard file formats such as <a href="https://en.wikipedia.org/wiki/PNG">PNG</a>, <a href="https://en.wikipedia.org/wiki/SVG">SVG</a>, <a href="https://en.wikipedia.org/wiki/WAV">WAV</a>, and others.
+        Corrupted costumes appear as <a href="defaultBitmap.png">a question mark in a gray box</a>, and corrupted sounds are replaced with zero-second sounds.
+        There are other bugs that can result in these symptoms even if the asset is not corrupt.
+        Some corrupted costumes load fine but cause a crash if you try to edit them.
+        At this time, sb3fix does not attempt to fix asset corruption beyond our attempts to fix zip corruption.
+        Asset corruption is not common and is rarely catastrophic as the rest of the project can still load.
+      </p>
+      <p>sb3fix is open source at <a href="https://github.com/TurboWarp/sb3fix">https://github.com/TurboWarp/sb3fix</a></p>
 
-    <h2>Privacy</h2>
-    <p>Files are processed locally on your computer and never sent to any server.</p>
+      <h2>Privacy</h2>
+      <p>Files are processed locally on your computer and never sent to any server.</p>
+    </main>
 
     <script src="sb3fix.js"></script>
 
