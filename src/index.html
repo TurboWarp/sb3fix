@@ -217,6 +217,12 @@
       /** @type {HTMLElement} */
       const output = document.querySelector('.output');
 
+      const searchParams = new URLSearchParams(location.search);
+      const platformParam = searchParams.get('platform');
+      if (platformParam && Object.prototype.hasOwnProperty.call(sb3fix.platforms, platformParam)) {
+        platformInput.value = platformParam;
+      }
+
       // Start handling drag events as soon as possible
       const dropIndicator = document.querySelector('.drop-indicator');
       document.addEventListener('dragover', (e) => {
