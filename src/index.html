@@ -137,7 +137,7 @@
     <p class="input-container">
       <label>
         Files to fix:
-        <input class="file" type="file" accept=".sb3, .sprite3" multiple autocomplete="off">
+        <input class="file" type="file" accept=".sb3, .sprite3, .json" multiple autocomplete="off">
       </label>
 
       <label>
@@ -259,6 +259,13 @@
         return `${error}`;
       };
 
+      const readAsText = (blob) => new Promise((resolve, reject) => {
+        const fr = new FileReader();
+        fr.onload = () => resolve(fr.result);
+        fr.onerror = () => reject(fr.error);
+        fr.readAsText(blob);
+      });
+
       const processFile = async (file) => {
         const container = Object.assign(document.createElement('div'), {
           className: 'project'
@@ -298,19 +305,31 @@
 
         try {
           const startTime = performance.now();
-          const fixed = await sb3fix.fixZip(file, {
+          const options = {
             platform: platformInput.value,
             logCallback: (message) => {
               const millis = ((performance.now() - startTime) / 1000).toFixed(3);
               logMessages.textContent += `${logMessages.textContent.length > 0 ? '\n' : ''}[${millis}] ${message}`;
             }
-          });
+          };
 
-          const blob = new Blob([fixed], {
-            type: 'application/x.scratch.sb3'
-          });
+          let fixedBlob;
+
+          if (file.name.endsWith('.json')) {
+            const text = await readAsText(file);
+            const fixed = sb3fix.fixJSON(text, options);
+            fixedBlob = new Blob([JSON.stringify(fixed)], {
+              type: 'application/json'
+            });
+          } else {
+            const fixed = await sb3fix.fixZip(file, options);
+            fixedBlob = new Blob([fixed], {
+              type: 'application/x.scratch.sb3'
+            });
+          }
+
           const downloadElement = document.createElement('a');
-          downloadElement.href = URL.createObjectURL(blob);
+          downloadElement.href = URL.createObjectURL(fixedBlob);
           downloadElement.download = `fixed ${file.name}`;
           downloadElement.textContent = `Download fixed ${file.name}`;
 
