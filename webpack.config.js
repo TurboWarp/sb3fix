@@ -3,6 +3,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: process.env.NODE_ENV === 'production' ? 'production' : 'development',
+  devtool: process.env.NODE_ENV === 'production' ? 'source-map' : 'eval',
   entry: './src/sb3fix.js',
   output: {
     filename: 'sb3fix.js',
