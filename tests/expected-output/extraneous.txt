@@ -1,0 +1,6 @@
+zip had extraneous file README.md
+zip had extraneous file package.json
+zip had extraneous file a folder in the zip/package-lock.json
+zip had extraneous file a folder in the zip/webpack.config.js
+checking target 0
+checking target 1

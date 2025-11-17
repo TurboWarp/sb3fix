@@ -631,21 +631,25 @@ const fixZip = async (data, options = {}) => {
     }
   });
 
-  /** @type {Array<[string, import("@turbowarp/jszip").JSZipObject]>} */
-  const zipFiles = [];
-  zip.forEach((relativePath, file) => {
-    zipFiles.push([relativePath, file]);
-  });
-
   // Remove any unreadable files from the zip. This can notably happen if the compressed data in the zip was
   // corrupted, which would make the uncompressed data size field not match. Scratch/JSZip will refuse to
   // keep loading the project if that happens. If we remove the asset, at least there's a chance it can now
   // be downloaded from the asset server instead.
-  for (const [relativePath, file] of zipFiles) {
-    try {
-      await file.async('uint8array');
-    } catch (error) {
-      log(`zip had unreadable file ${relativePath}: ${error}`);
+  for (const [relativePath, file] of Object.entries(zip.files)) {
+    if (file.dir) {
+      continue;
+    }
+
+    if (/(?:project|sprite)\.json/.test(relativePath) || /[0-9a-f]{32}\./.test(relativePath)) {
+      try {
+        // If the file is corrupt, this will throw.
+        await file.async('uint8array');
+      } catch (error) {
+        log(`zip had unreadable file ${relativePath}: ${error}`);
+        zip.remove(relativePath);
+      }
+    } else {
+      log(`zip had extraneous file ${relativePath}`);
       zip.remove(relativePath);
     }
   }
