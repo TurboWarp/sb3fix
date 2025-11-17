@@ -25,6 +25,14 @@ file, You can obtain one at https://mozilla.org/MPL/2.0/.
 const isObject = (obj) => !!obj && typeof obj === 'object';
 
 /**
+ * Object.hasOwn() but it works in more browsers.
+ * @param {unknown} obj 
+ * @param {string} property 
+ * @returns {boolean} true if Object.hasOwn(obj, property)
+ */
+const hasOwn = (obj, property) => Object.prototype.hasOwnProperty.call(obj, property);
+
+/**
  * @typedef PlatformInfo
  * @property {boolean} [allowsNonScalarVariables]
  */
@@ -44,8 +52,8 @@ const platforms = {
  * @returns {PlatformInfo}
  */
 const getPlatform = (options) => {
-  if (options && Object.prototype.hasOwnProperty.call(options, 'platform')) {
-    if (Object.prototype.hasOwnProperty.call(platforms, options.platform)) {
+  if (options && hasOwn(options, 'platform')) {
+    if (hasOwn(platforms, options.platform)) {
       return platforms[options.platform];
     }
     throw new Error(`Unknown platform: ${options.platform}`);
@@ -475,7 +483,7 @@ const fixJSON = (data, options = {}) => {
       'off',
       'on-flipped'
     ];
-    if (Object.prototype.hasOwnProperty.call(stage, 'videoState') && !VIDEO_STATES.includes(stage.videoState)) {
+    if (hasOwn(stage, 'videoState') && !VIDEO_STATES.includes(stage.videoState)) {
       log(`stage had invalid videoState: ${stage.videoState}`);
       stage.videoState = 'off';
     }
