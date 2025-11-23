@@ -1,0 +1,45 @@
+name: Corrupted project
+description: Use this form if you have a corrupted project that you want fixed.
+labels:
+  - corrupted project
+title: "[Corrupted project] Put your project name here"
+
+body:
+  - type: checkboxes
+    attributes:
+      label: Understandings
+      options:
+        - label: I understand that sb3fix is a community project not run by the Scratch Team.
+          required: true
+        - label: I understand that it may take several days for a volunteer to examine my project.
+          required: true
+        - label: I understand that my project may be unrecoverable.
+          required: true
+
+  - type: textarea
+    attributes:
+      label: Link to download project
+      description: |
+        You need to give us your project for us to be able to examine it. If you are okay with anyone being able to download your project, any of these will work:
+        
+         * Put your project file inside a zip, then use the add files button to attach that zip.
+         * Upload your project to a file sharing site like Google Drive, then generate a public link and paste it here.
+        
+        If you prefer to share your project privately, email your project to contact+sb3fix@turbowarp.org then just write that you emailed the project.
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Any relevant error messages
+      render: txt
+      description: |
+        If you have an error messages from Scratch, TurboWarp, sb3fix, or anything else, then paste it here.
+
+  - type: textarea
+    attributes:
+      label: Extra context
+      description: |
+        Tell us any context leading up to your project becoming corrupt. This helps us track down and fix the bug that made your project corrupt.
+
+        Helpful things are the name and version of the last program you used to save the project, and whether you used AI at any point.
