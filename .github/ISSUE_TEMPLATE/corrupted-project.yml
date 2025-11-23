@@ -33,7 +33,7 @@ body:
     attributes:
       label: Any relevant error messages
       description: |
-        If you have error messages from Scratch, TurboWarp, sb3fix, or anything else, then paste it here.
+        If you have error messages from Scratch, TurboWarp, sb3fix, or anything else, then paste them here.
 
   - type: textarea
     attributes:
