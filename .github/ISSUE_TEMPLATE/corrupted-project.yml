@@ -32,13 +32,12 @@ body:
   - type: textarea
     attributes:
       label: Any relevant error messages
-      render: txt
       description: |
-        If you have an error messages from Scratch, TurboWarp, sb3fix, or anything else, then paste it here.
+        If you have error messages from Scratch, TurboWarp, sb3fix, or anything else, then paste it here.
 
   - type: textarea
     attributes:
-      label: Extra context
+      label: Additional information
       description: |
         Tell us any context leading up to your project becoming corrupt. This helps us track down and fix the bug that made your project corrupt.
 
