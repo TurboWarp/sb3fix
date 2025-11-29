@@ -1,4 +1,5 @@
 dist
+static
 .github
 tests
 webpack.config.js
