@@ -1,7 +1,7 @@
 /*!
 sb3fix - https://github.com/TurboWarp/sb3fix
 
-Copyright (C) 2023-2025 Thomas Weber
+Copyright (C) 2023-2026 Thomas Weber
 
 This Source Code Form is subject to the terms of the Mozilla Public
 License, v. 2.0. If a copy of the MPL was not distributed with this
