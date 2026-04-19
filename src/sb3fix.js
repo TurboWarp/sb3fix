@@ -179,6 +179,7 @@ const fixJSON = (data, options = {}) => {
 
   /**
    * @param {unknown[]} native
+   * @returns {boolean} true to keep, false to delete
    */
   const fixCompressedNativeInPlace = (native) => {
     if (!Array.isArray(native)) {
@@ -209,7 +210,7 @@ const fixJSON = (data, options = {}) => {
           log('number native had invalid value');
           native[1] = String(value);
         }
-        break;
+        return true;
       }
 
       // Color: [9, hex color]
@@ -222,7 +223,7 @@ const fixJSON = (data, options = {}) => {
           log('color native had invalid value');
           native[1] = '#000000';
         }
-        break;
+        return true;
       }
 
       // Text: [10, string|number]
@@ -235,7 +236,13 @@ const fixJSON = (data, options = {}) => {
           log('text native had invalid value');
           native[1] = String(value);
         }
-        break;
+        return true;
+      }
+
+      // Broadcast: [11, name, id]
+      case 11: {
+        // Nothing to fix so far.
+        return true;
       }
 
       // Variable: [12, variable name, variable id, x?, y?]
@@ -251,18 +258,27 @@ const fixJSON = (data, options = {}) => {
           log(`variable or list native name was not a string`);
           native[1] = String(native[1]);
         }
-        break;
+        const id = native[2];
+        if (typeof id !== 'string') {
+          log(`deleting compressed variable or list reference with non-string ID`);
+          return false;
+        }
+        return true;
       }
+
+      default:
+        throw new Error(`Unknown native type: ${type}`);
     }
   };
 
   /**
    * @param {string} id
    * @param {unknown} block
+   * @returns {boolean} true to keep, false to delete
    */
   const fixBlockInPlace = (id, block) => {
     if (Array.isArray(block)) {
-      fixCompressedNativeInPlace(block);
+      return fixCompressedNativeInPlace(block);
     } else if (isObject(block)) {
       const inputs = block.inputs;
       if (!isObject(inputs)) {
@@ -288,6 +304,8 @@ const fixJSON = (data, options = {}) => {
           throw new Error(`block ${id} field ${fieldName} is not an array`);
         }
       }
+
+      return true;
     } else {
       throw new Error(`block ${id} is not an object`);
     }
@@ -401,7 +419,9 @@ const fixJSON = (data, options = {}) => {
       throw new Error('blocks is not an object');
     }
     for (const [blockId, block] of Object.entries(blocks)) {
-      fixBlockInPlace(blockId, block);
+      if (!fixBlockInPlace(blockId, block)) {
+        delete blocks[blockId];
+      }
     }
 
     // Comments are not required
