@@ -34,15 +34,21 @@ const hasOwn = (obj, property) => Object.prototype.hasOwnProperty.call(obj, prop
 
 /**
  * @typedef PlatformInfo
- * @property {boolean} [allowsNonScalarVariables]
+ * @property {boolean} [allowsNonScalarVariables] If true, variables don't need to be a single string/number/boolean.
+ * @property {boolean} [nativelyUnderstandsSpork] If true, the platform's editor can natively understand spork-isms in project.json and thus compatibility fixes can be skipped.
  */
 
 /**
  * @type {Record<Platform, PlatformInfo>}
  */
 const platforms = {
-  scratch: {},
+  scratch: {
+    // Although the Scratch website uses spork, the desktop app still doesn't so for now, we'll keep applying the spork fixes there too.
+    nativelyUnderstandsSpork: false,
+    allowsNonScalarVariables: false
+  },
   turbowarp: {
+    nativelyUnderstandsSpork: false,
     allowsNonScalarVariables: true
   }
 };
@@ -312,6 +318,61 @@ const fixJSON = (data, options = {}) => {
   };
 
   /**
+   * Fix backwards-incompatible changes that Scratch made in the spork migration.
+   * @param {object} blocks
+   */
+  const fixSporkBackwardsIncompatibilityInPlace = (blocks) => {
+    for (const [blockId, block] of Object.entries(blocks)) {
+      if (!isObject(block)) {
+        continue;
+      }
+
+      switch (block.opcode) {
+        // Custom block definition prototype blocks used to be marked as shadow: true, but spork marks as shadow: false.
+        // Our scratch-blocks relies on it being shadow: true to prevent moving, so we'll force it to be that way.
+        case 'procedures_prototype':
+          if (block.shadow !== true) {
+            log(`(spork) forcing shadow on procedures_prototype block ${blockId}`);
+            block.shadow = true;
+          }
+          break;
+
+        // For completeness with the above, set the argument reporter generators to be shadow: true as well.
+        case 'argument_reporter_string_number':
+        case 'argument_reporter_boolean': {
+          const parent = blocks[block.parent];
+          if (isObject(parent) && parent.opcode === 'procedures_prototype' && block.shadow !== true) {
+            log(`(spork) forcing shadow on ${block.opcode} block ${blockId}`);
+            block.shadow = true;
+          }
+          break;
+        }
+
+        // control_stop used to define a mutation for whether it has a connection below, which is what old
+        // scratch-blocks relies on to determine if there is another conneciton below or not. Spork does not define
+        // this mutation and relies only on the STOP_OPTION field. We will generate the mutation if it's missing so
+        // that a "stop other scripts in sprite" block doesn't cause the workspace to fail to load.
+        case 'control_stop': {
+          if (!block.mutation) {
+            const field = block.fields && block.fields.STOP_OPTION;
+            const stopOption = Array.isArray(field) ? field[0] : null;
+            const hasNext = stopOption === 'other scripts in sprite' || stopOption === 'other scripts in stage';
+            if (hasNext) {
+              log(`(spork) generating mutation on control_stop block ${blockId}`);
+              block.mutation = {
+                tagName: 'mutation',
+                hasnext: hasNext ? 'true' : 'false',
+                children: []
+              };
+            }
+          }
+          break;
+        }
+      }
+    }
+  };
+
+  /**
    * @param {string} id
    * @param {unknown} comment
    */
@@ -422,6 +483,10 @@ const fixJSON = (data, options = {}) => {
       if (!fixBlockInPlace(blockId, block)) {
         delete blocks[blockId];
       }
+    }
+
+    if (!platform.nativelyUnderstandsSpork) {
+      fixSporkBackwardsIncompatibilityInPlace(blocks);
     }
 
     // Comments are not required

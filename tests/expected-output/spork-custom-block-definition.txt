@@ -1,0 +1,4 @@
+checking target 0
+(spork) forcing shadow on procedures_prototype block *FCNrmIOH~%uS*(ay.JT
+(spork) forcing shadow on argument_reporter_string_number block t.173}8zc0u@/%wX8.G?
+(spork) forcing shadow on argument_reporter_boolean block Ajat+t9A8)z${)b]xK7~
