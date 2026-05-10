@@ -296,7 +296,10 @@ const fixJSON = (data, options = {}) => {
         }
         for (let i = 1; i < input.length; i++) {
           if (Array.isArray(input[i])) {
-            fixCompressedNativeInPlace(input[i]);
+            if (!fixCompressedNativeInPlace(input[i])) {
+              // Logging happens in fixCompressedNativeInPlace
+              input[i] = null;
+            }
           }
         }
       }
@@ -481,6 +484,7 @@ const fixJSON = (data, options = {}) => {
     }
     for (const [blockId, block] of Object.entries(blocks)) {
       if (!fixBlockInPlace(blockId, block)) {
+        // Logging happens in fixBlockInPlace
         delete blocks[blockId];
       }
     }

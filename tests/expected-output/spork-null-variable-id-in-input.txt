@@ -1,0 +1,3 @@
+checking target 0
+checking target 1
+deleting compressed variable or list reference with non-string ID
