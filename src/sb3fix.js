@@ -247,7 +247,19 @@ const fixJSON = (data, options = {}) => {
 
       // Broadcast: [11, name, id]
       case 11: {
-        // Nothing to fix so far.
+        if (native.length !== 3) {
+          throw new Error(`Broadcast native is of unexpected length: ${native.length}`);
+        }
+        const name = native[1];
+        if (typeof name !== 'string') {
+          log(`broadcast native name was not a string`);
+          native[1] = String(native[1]);
+        }
+        const id = native[2];
+        if (typeof id !== 'string') {
+          log(`deleting compressed broadcast reference with non-string ID`);
+          return false;
+        }
         return true;
       }
 

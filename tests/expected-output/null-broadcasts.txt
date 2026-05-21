@@ -1,0 +1,4 @@
+checking target 0
+checking target 1
+broadcast native name was not a string
+deleting compressed broadcast reference with non-string ID
