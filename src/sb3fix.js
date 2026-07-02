@@ -306,9 +306,13 @@ const fixJSON = (data, options = {}) => {
         if (!Array.isArray(input)) {
           throw new Error(`block ${id} input ${inputName} is not an array`);
         }
+        const isSubstack = inputName.startsWith('SUBSTACK');
         for (let i = 1; i < input.length; i++) {
           if (Array.isArray(input[i])) {
-            if (!fixCompressedNativeInPlace(input[i])) {
+            if (isSubstack) {
+              log(`block ${id} input ${inputName} was not a substack`);
+              input[i] = null;
+            } else if (!fixCompressedNativeInPlace(input[i])) {
               // Logging happens in fixCompressedNativeInPlace
               input[i] = null;
             }
