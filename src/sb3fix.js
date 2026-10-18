@@ -151,6 +151,14 @@ const fixJSON = (data, options = {}) => {
         variable[1] = String(variable[1]);
       }
     }
+
+    if (variable.length >= 3) {
+      const cloud = variable[2];
+      if (cloud !== true) {
+        log(`variable ${id} cloud was set but was not true`);
+        delete variable[2];
+      }
+    }
   };
 
   /**
